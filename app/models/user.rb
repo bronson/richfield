@@ -1,3 +1,7 @@
 class User < ActiveRecord::Base
-  # attr_accessible :title, :body
+  fields do |t|
+    t.first_name :string
+    t.last_name :string
+    t.timestamps
+  end
 end
