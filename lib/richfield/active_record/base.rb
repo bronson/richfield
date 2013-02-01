@@ -6,35 +6,15 @@ module Richfield
       module ClassMethods
         attr_accessor :model_fields
 
-        def fields include_in_migration=true, &block
-          @include_in_migration = include_in_migration
-          Dsl.new(self).instance_eval(&block)
-        end
+        def fields options={}
+          # this nontrivial code comes from AR::CA::SchemaStatements#create_table.  Refactor?
+          td = ::ActiveRecord::ConnectionAdapters::TableDefinition.new(connection)
+          td.primary_key(options[:primary_key] || ::ActiveRecord::Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        def declare_field name, *args
-          @model_fields ||= {}
-          @model_fields[name] = args
+          yield td if block_given?
+          @fields_definition = td
         end
       end
-    end
-  end
-
-  class Dsl < BasicObject
-    def initialize model
-      @model = model
-    end
-
-    def field name, type, *args
-      @model.declare_field name, type, *args
-    end
-
-    def method_missing name, *args
-      field name, args[0], *args[1..-1]
-    end
-
-    def timestamps
-      field :created_at, :datetime
-      field :updated_at, :datetime
     end
   end
 end

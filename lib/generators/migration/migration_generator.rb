@@ -50,27 +50,6 @@ end
 
 # TODO: factor activerecord out of the migrator, use shims to allow any ORM
 class Migrator
-  class Results
-    def initialize create_tables, drop_tables
-      @create_tables = create_tables
-      @drop_tables = drop_tables
-    end
-
-    def create_tables indent
-      @create_tables.map { |t| "#{indent}create_table :#{t}\n" }.join
-    end
-
-    def drop_tables
-    end
-
-    def up_body indent
-      create_tables indent
-    end
-
-    def down_body indent
-    end
-  end
-
   def generate
     model_tables = models.map(&:table_name)
     db_tables = tables
@@ -89,3 +68,26 @@ class Migrator
     ActiveRecord::Base.connection.tables
   end
 end
+
+
+class Migrator::Formatter
+  def initialize create_tables, drop_tables
+    @create_tables = create_tables
+    @drop_tables = drop_tables
+  end
+
+  def create_tables indent
+    @create_tables.map { |t| "#{indent}create_table :#{t}\n" }.join
+  end
+
+  def drop_tables
+  end
+
+  def up_body indent
+    create_tables indent
+  end
+
+  def down_body indent
+  end
+end
+
