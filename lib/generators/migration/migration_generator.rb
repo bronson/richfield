@@ -16,7 +16,6 @@
 
 require 'rails/generators/active_record/migration/migration_generator'
 
-
 class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
   # this tells where to find this generator's template files
   source_root File.expand_path('../templates', __FILE__)
@@ -27,8 +26,7 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
     return if migrations_pending?
 
     @migration = Migrator.new.generate
-    template 'migration.rb', 'db/migration/nifty.rb'
-    # super(*args)
+    super(*args)
   end
 
   protected
