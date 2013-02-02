@@ -106,6 +106,7 @@ end
 # Hope one day SchemaDumper can be converted to use this dumper.
 class ActiveRecord::Dumper
   # BUG? deleting the , at the end of a short line leaves longer lines indented 1 character too far
+  # TODO: rewrite columns to generate a 2D array, then just format that.  way easier!
   attr_reader :indent, :options
 
   def initialize indent
@@ -137,24 +138,26 @@ class ActiveRecord::Dumper
     "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns cols}#{indent}end\n"
   end
 
+  # returns the keys in cols in the order that they should be displayed
   def keys_present cols
     [:type, :name, :limit, :precision, :scale, :default, :null] & cols.map { |k|
       k.members.reject { |v| k[v].nil? }
     }.flatten
   end
 
-  def spec col, k
-    v = col[k]
+  # formats the named value for display
+  def format_value column, key
+    value = column[key]
 
-    if k == :type
-      v.to_s
-    elsif k == :name
-      v.inspect + ','
-    elsif !v.nil?
-      if k == :limit && (v == @types[col.type][:limit] || col.type == :decimal)
+    if key == :type
+      value.to_s
+    elsif key == :name
+      value.inspect + ','
+    elsif !value.nil?
+      if key == :limit && (value == @types[column.type][:limit] || column.type == :decimal)
         ''
       else
-        "#{k.inspect} => #{v.inspect},"
+        "#{key.inspect} => #{value.inspect},"
       end
     else
       ''
@@ -164,12 +167,12 @@ class ActiveRecord::Dumper
   def columns cols
     keys = keys_present(cols)
     lengths = keys.inject({}) { |a,k|
-      a.merge! k => cols.map { |c| !c[k].nil? ? spec(c,k).length : 0 }.max
+      a.merge! k => cols.map { |c| !c[k].nil? ? format_value(c,k).length : 0 }.max
     }
     cols.map { |c| column c, keys, lengths }.join
   end
 
   def column col, keys, lengths
-    "#{indent}  t." + keys.map { |k| "%-#{lengths[k]}s" % spec(col,k) }.join(" ").sub(/,\s*$/, '') + "\n"
+    "#{indent}  t." + keys.map { |k| "%-#{lengths[k]}s" % format_value(col,k) }.join(" ").sub(/,\s*$/, '') + "\n"
   end
 end
