@@ -50,7 +50,6 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
 end
 
 
-# TODO: factor activerecord out of the migrator, use shims to allow any ORM
 class Migrator
   def generate
     create_table_names = models.keys - db_table_names

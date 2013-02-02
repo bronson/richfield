@@ -3,7 +3,7 @@ class User < ActiveRecord::Base
     t.string :first_name
     t.string :last_name
     t.timestamps
-
-    has_many :posts
   end
+
+  has_many :posts
 end
