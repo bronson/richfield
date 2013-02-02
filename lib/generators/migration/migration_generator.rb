@@ -11,6 +11,8 @@
 # - habtm
 # - make sure we work with config.active_record.timestamped_migrations = false
 
+# make sure fields do { } and fields; add_column work?  Do we really need the second syntax?
+
 
 # up,down = Generators::Hobo::Migration::Migrator.new(lambda{|c,d,k,p| extract_renames!(c,d,k,p)}).generate
 
@@ -51,21 +53,25 @@ end
 # TODO: factor activerecord out of the migrator, use shims to allow any ORM
 class Migrator
   def generate
-    model_tables = models.map(&:table_name)
-    db_tables = tables
+    create_table_names = models.keys - db_table_names
+    drop_tables = db_table_names - models.keys
 
-    create_tables = model_tables - db_tables
-    drop_tables = db_tables - model_tables
-    Results.new create_tables, drop_tables
+    creates = create_table_names.map { |name| models[name] }
+    Formatter.new creates, drop_tables
   end
 
+  # returns a hash of all tracked models indexed by table_name
   def models
     Rails.application.eager_load!
-    ActiveRecord::Base.descendants # .select { |m| m.respond_to? :fields }
+    @models ||= ActiveRecord::Base.descendants.select { |m| m.respond_to? :fields }.inject({}) { |h,m| h.merge! m.table_name => m }
   end
 
-  def tables
+  def db_table_names
     ActiveRecord::Base.connection.tables
+  end
+
+  def create_table name
+
   end
 end
 
@@ -76,8 +82,19 @@ class Migrator::Formatter
     @drop_tables = drop_tables
   end
 
+  def columns model
+    model.instance_variable_get('@fields_definition').map { |col|
+      ActiveRecord::Dumper.column col
+    }
+  end
+
   def create_tables indent
-    @create_tables.map { |t| "#{indent}create_table :#{t}\n" }.join
+    dumper = ActiveRecord::Dumper.new indent
+    @create_tables.map { |tbl|
+      options = ""
+      cols = dumper.columns tbl.instance_variable_get('@fields_definition').columns
+      "#{indent}create_table :#{tbl.table_name} #{options}{ do |t|\n#{cols}#{indent}}\n"
+    }.join
   end
 
   def drop_tables
@@ -91,3 +108,32 @@ class Migrator::Formatter
   end
 end
 
+
+# This is heavily copied from ActiveRecord::SchemaDumper. It should probably not even exist.
+# Instead, a ColumnDefinintion chould know how to dump itself, then there should be a way
+# to convertActiveRecord::ConnectionAdapters::Column into a ColumnDefinition, then change
+# SchemaDumper to just dump the ColumnDefinition.
+class ActiveRecord::Dumper
+  attr_reader :indent
+
+  def initialize indent
+    @indent = indent
+  end
+
+  def tables tbls
+    tbls.map { |t| table t }.join("\n")
+  end
+
+  def table tbl
+    options = ""
+    "#{indent}create_table :#{tbl.table_name} #{options}{ do |t|\n#{columns tbl.columns}\n"
+  end
+
+  def columns cols
+    cols.map { |c| column c }.join
+  end
+
+  def column col
+    "#{indent}  #{col.name}\n"
+  end
+end
