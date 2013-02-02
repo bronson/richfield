@@ -164,9 +164,11 @@ class ActiveRecord::Dumper
 
   def columns cols
     keys = keys_present(cols)
-    grid = cols.map { |col| keys.map { |key| format_value col, key } }                       # 2D grid of table definition values
-    grid.each { |row| row[row.rindex { |f| !f.blank? }].gsub!(/,$/, '') }                    # remove trailing commas
-    lengths = keys.to_enum.with_index.map { |key,i| grid.map { |row| row[i].length }.max }   # maximum width for each grid column
-    grid.map { |row| "#{@indent}  " + row.to_enum.with_index.map { |value,i| "%-#{lengths[i]}s " % value }.join.gsub(/\s+$/, '') + "\n" }.join
+    grid = cols.map { |col| keys.map { |key| format_value col, key } }              # 2D grid of table definition values
+    grid.each { |row| row[row.rindex { |f| !f.blank? }].gsub!(/,$/, '') }           # remove trailing commas
+    lengths = keys.map { |key| grid.map { |row| row[keys.index(key)].length }.max } # maximum width for each grid column
+    grid.map { |row| "#{@indent}  " + row.to_enum.with_index.map { |value,i|
+      "%-#{lengths[i]}s " % value }.join.gsub(/\s+$/, '') + "\n"
+    }.join
   end
 end
