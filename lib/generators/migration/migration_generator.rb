@@ -102,19 +102,16 @@ class Migrator::Formatter
 end
 
 
-# This is heavily copied from ActiveRecord::SchemaDumper. It should probably not even exist.
-# Instead, a ColumnDefinintion chould know how to dump itself, then there should be a way
-# to convertActiveRecord::ConnectionAdapters::Column into a ColumnDefinition, then change
-# SchemaDumper to just dump the ColumnDefinition.
+# This is heavily copied from ActiveRecord::SchemaDumper and should produce identical output.
+# Hope one day SchemaDumper can be converted to use this dumper.
 class ActiveRecord::Dumper
-  # NEEDS:
-  # - don't add ActiveRecord::Base.table_name_prefix or suffix to table name. I assume caller has already done that before dumping.
-  # - allow :force => true, :primary_key => field, and id => false
+  # BUG? deleting the , at the end of a short line leaves longer lines indented 1 character too far
   attr_reader :indent, :options
 
   def initialize indent
     @indent = indent
     @options = [':force => true']
+    @types = ActiveRecord::Base.connection.native_database_types
   end
 
   def tables tbls
@@ -140,13 +137,39 @@ class ActiveRecord::Dumper
     "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns cols}#{indent}end\n"
   end
 
-  def columns cols
-    width = cols.map { |c| c.type.length }.max + 1
-    cols.map { |c| column c, width }.join
+  def keys_present cols
+    [:type, :name, :limit, :precision, :scale, :default, :null] & cols.map { |k|
+      k.members.reject { |v| k[v].nil? }
+    }.flatten
   end
 
-  def column col, width
-    # TODO: align type by longest type name
-    "#{indent}  t.#{"%-#{width}s" % col.type} \"#{col.name}\"\n"
+  def spec col, k
+    v = col[k]
+
+    if k == :type
+      v.to_s
+    elsif k == :name
+      v.inspect + ','
+    elsif !v.nil?
+      if k == :limit && (v == @types[col.type][:limit] || col.type == :decimal)
+        ''
+      else
+        "#{k.inspect} => #{v.inspect},"
+      end
+    else
+      ''
+    end
+  end
+
+  def columns cols
+    keys = keys_present(cols)
+    lengths = keys.inject({}) { |a,k|
+      a.merge! k => cols.map { |c| !c[k].nil? ? spec(c,k).length : 0 }.max
+    }
+    cols.map { |c| column c, keys, lengths }.join
+  end
+
+  def column col, keys, lengths
+    "#{indent}  t." + keys.map { |k| "%-#{lengths[k]}s" % spec(col,k) }.join(" ").sub(/,\s*$/, '') + "\n"
   end
 end
