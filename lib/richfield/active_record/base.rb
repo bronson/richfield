@@ -4,15 +4,15 @@ module Richfield
       extend ActiveSupport::Concern
 
       module ClassMethods
-        attr_accessor :model_fields
+        def richfield_definition
+          # this comes from AR::CA::SchemaStatements#create_table.  Refactor to remove duplication?
+          @richfield_definiton ||= ::ActiveRecord::ConnectionAdapters::TableDefinition.new(connection)
+        end
 
         def fields options={}
-          # this nontrivial code comes from AR::CA::SchemaStatements#create_table.  Refactor?
-          td = ::ActiveRecord::ConnectionAdapters::TableDefinition.new(connection)
-          td.primary_key(options[:primary_key] || ::ActiveRecord::Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
-
-          yield td if block_given?
-          @fields_definition = td
+          cols = richfield_definition
+          cols.primary_key(options[:primary_key] || ::ActiveRecord::Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
+          yield cols if block_given?
         end
       end
     end

@@ -80,7 +80,7 @@ class Migrator::Formatter
 
   # creates a TableDefinition lookalike for the model's fields
   def table_fields_definition model
-    columns = model.instance_variable_get('@fields_definition').columns
+    columns = model.richfield_definition.columns
     Struct.new(:table_name, :primary_key, :columns).new(model.table_name, model.primary_key, columns)
   end
 
