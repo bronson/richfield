@@ -52,23 +52,51 @@ end
 
 class Migrator
   def generate
-    create_table_names = models.keys - db_table_names
-    drop_tables = db_table_names - models.keys
+    desired_tables = {}.merge(model_tables).merge(habtm_tables)
+    create_names = desired_tables.keys - existing_tables
+    drop_names = existing_tables - desired_tables.keys
 
-    creates = create_table_names.map { |name| models[name] }
-    Formatter.new creates, drop_tables
+    create_tables = create_names.map { |name| desired_tables[name] }
+    Formatter.new create_tables, drop_names
   end
 
-  # returns a hash of all tracked models indexed by table_name
   def models
-    Rails.application.eager_load!
-    @models ||= ActiveRecord::Base.descendants.select { |m| m.respond_to? :fields }.inject({}) { |h,m| h.merge! m.table_name => m }
+    @models ||= begin
+      Rails.application.eager_load!
+      ActiveRecord::Base.descendants.select { |m| m.respond_to? :fields }
+    end
   end
 
-  def db_table_names
+  def model_tables
+    models.inject({}) do |h,m|
+      # create an identical table definition except columns reflects the desired columns, not the actual ones
+      table_definition = Migrator::TableDefinition.new(m.table_name, m.primary_key, m.richfield_definition.columns)
+      h.merge! m.table_name => table_definition
+    end
+  end
+
+  def join_table assoc, connection
+    table_name = assoc.options[:join_table]
+    table = ActiveRecord::ConnectionAdapters::TableDefinition.new(connection)
+    [assoc.foreign_key.to_s, assoc.association_foreign_key.to_s].sort.each { |aname| table.column(aname, :references) }
+    { table_name => Migrator::TableDefinition.new(table_name, false, table.columns) }
+  end
+
+  def habtm_tables
+    models.inject({}) do |mh,m|
+      mh.merge! m.reflect_on_all_associations(:has_and_belongs_to_many).inject({}) { |ah,a| ah.merge! join_table(a, m.connection) }
+    end
+  end
+
+  def existing_tables
     ActiveRecord::Base.connection.tables
   end
 end
+
+
+# Behaves like a fake model, for instance for habtm tables.  Might be better to just
+# modify AR::CA::TableDefinition to keep track of table_name and primary_key?  Or delegate it.
+Migrator::TableDefinition = Struct.new(:table_name, :primary_key, :columns)
 
 
 class Migrator::Formatter
@@ -77,16 +105,8 @@ class Migrator::Formatter
     @drop_tables = drop_tables
   end
 
-  # creates a TableDefinition lookalike for the model's fields
-  def table_fields_definition model
-    columns = model.richfield_definition.columns
-    Struct.new(:table_name, :primary_key, :columns).new(model.table_name, model.primary_key, columns)
-  end
-
   def create_tables indent
-    dumper = ActiveRecord::Dumper.new indent
-    tables = @create_tables.map { |tbl| table_fields_definition tbl }
-    dumper.tables tables
+    ActiveRecord::Dumper.new(indent).tables(@create_tables)
   end
 
   def drop_tables
