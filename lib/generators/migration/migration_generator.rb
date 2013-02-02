@@ -122,23 +122,31 @@ class ActiveRecord::Dumper
   end
 
   def table tbl
-    options = @options
+    options = []
+    cols = tbl.columns
+
     if tbl.primary_key
-      options << ":primary_key => #{tbl.primary_key}" if tbl.primary_key != 'id'
+      if tbl.primary_key == 'id'
+        cols = cols.dup.reject { |c| c.name == 'id' }
+      else
+        options << ":primary_key => #{tbl.primary_key}"
+      end
     else
       options << ':id => false'
     end
-    options_str = options.present? ? options.join(", ")+" " : ""
 
-    "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns tbl.columns}#{indent}end\n"
+    options.concat @options
+    options_str = options.present? ? options.join(", ")+" " : ""
+    "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns cols}#{indent}end\n"
   end
 
   def columns cols
-    cols.map { |c| column c }.join
+    width = cols.map { |c| c.type.length }.max + 1
+    cols.map { |c| column c, width }.join
   end
 
-  def column col
+  def column col, width
     # TODO: align type by longest type name
-    "#{indent}  t.#{col.type} \"#{col.name}\"\n"
+    "#{indent}  t.#{"%-#{width}s" % col.type} \"#{col.name}\"\n"
   end
 end
