@@ -69,10 +69,6 @@ class Migrator
   def db_table_names
     ActiveRecord::Base.connection.tables
   end
-
-  def create_table name
-
-  end
 end
 
 
@@ -82,19 +78,16 @@ class Migrator::Formatter
     @drop_tables = drop_tables
   end
 
-  def columns model
-    model.instance_variable_get('@fields_definition').map { |col|
-      ActiveRecord::Dumper.column col
-    }
+  # creates a TableDefinition lookalike for the model's fields
+  def table_fields_definition model
+    columns = model.instance_variable_get('@fields_definition').columns
+    Struct.new(:table_name, :columns).new(model.table_name, columns)
   end
 
   def create_tables indent
     dumper = ActiveRecord::Dumper.new indent
-    @create_tables.map { |tbl|
-      options = ""
-      cols = dumper.columns tbl.instance_variable_get('@fields_definition').columns
-      "#{indent}create_table :#{tbl.table_name} #{options}{ do |t|\n#{cols}#{indent}}\n"
-    }.join
+    tables = @create_tables.map { |tbl| table_fields_definition tbl }
+    dumper.tables tables
   end
 
   def drop_tables
@@ -121,12 +114,12 @@ class ActiveRecord::Dumper
   end
 
   def tables tbls
-    tbls.map { |t| table t }.join("\n")
+    tbls.map { |t| table t }.join
   end
 
   def table tbl
     options = ""
-    "#{indent}create_table :#{tbl.table_name} #{options}{ do |t|\n#{columns tbl.columns}\n"
+    "#{indent}create_table :#{tbl.table_name} #{options}do |t|\n#{columns tbl.columns}#{indent}end\n"
   end
 
   def columns cols
