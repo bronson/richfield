@@ -105,8 +105,6 @@ end
 # This is heavily copied from ActiveRecord::SchemaDumper and should produce identical output.
 # Hope one day SchemaDumper can be converted to use this dumper.
 class ActiveRecord::Dumper
-  # BUG? deleting the , at the end of a short line leaves longer lines indented 1 character too far
-  # TODO: rewrite columns to generate a 2D array, then just format that.  way easier!
   attr_reader :indent, :options
 
   def initialize indent
@@ -146,15 +144,15 @@ class ActiveRecord::Dumper
   end
 
   # formats the named value for display
-  def format_value column, key
-    value = column[key]
+  def format_value col, key
+    value = col[key]
 
     if key == :type
-      value.to_s
+      "t." + value.to_s
     elsif key == :name
       value.inspect + ','
     elsif !value.nil?
-      if key == :limit && (value == @types[column.type][:limit] || column.type == :decimal)
+      if key == :limit && (value == @types[col.type][:limit] || col.type == :decimal)
         ''
       else
         "#{key.inspect} => #{value.inspect},"
@@ -166,13 +164,9 @@ class ActiveRecord::Dumper
 
   def columns cols
     keys = keys_present(cols)
-    lengths = keys.inject({}) { |a,k|
-      a.merge! k => cols.map { |c| !c[k].nil? ? format_value(c,k).length : 0 }.max
-    }
-    cols.map { |c| column c, keys, lengths }.join
-  end
-
-  def column col, keys, lengths
-    "#{indent}  t." + keys.map { |k| "%-#{lengths[k]}s" % format_value(col,k) }.join(" ").sub(/,\s*$/, '') + "\n"
+    grid = cols.map { |col| keys.map { |key| format_value col, key } }                       # 2D grid of table definition values
+    grid.each { |row| row[row.rindex { |f| !f.blank? }].gsub!(/,$/, '') }                    # remove trailing commas
+    lengths = keys.to_enum.with_index.map { |key,i| grid.map { |row| row[i].length }.max }   # maximum width for each grid column
+    grid.map { |row| "#{@indent}  " + row.to_enum.with_index.map { |value,i| "%-#{lengths[i]}s " % value }.join.gsub(/\s+$/, '') + "\n" }.join
   end
 end
