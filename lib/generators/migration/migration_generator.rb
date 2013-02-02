@@ -81,7 +81,7 @@ class Migrator::Formatter
   # creates a TableDefinition lookalike for the model's fields
   def table_fields_definition model
     columns = model.instance_variable_get('@fields_definition').columns
-    Struct.new(:table_name, :columns).new(model.table_name, columns)
+    Struct.new(:table_name, :primary_key, :columns).new(model.table_name, model.primary_key, columns)
   end
 
   def create_tables indent
@@ -107,19 +107,30 @@ end
 # to convertActiveRecord::ConnectionAdapters::Column into a ColumnDefinition, then change
 # SchemaDumper to just dump the ColumnDefinition.
 class ActiveRecord::Dumper
-  attr_reader :indent
+  # NEEDS:
+  # - don't add ActiveRecord::Base.table_name_prefix or suffix to table name. I assume caller has already done that before dumping.
+  # - allow :force => true, :primary_key => field, and id => false
+  attr_reader :indent, :options
 
   def initialize indent
     @indent = indent
+    @options = [':force => true']
   end
 
   def tables tbls
-    tbls.map { |t| table t }.join
+    tbls.sort_by(&:table_name).map { |t| table t }.join
   end
 
   def table tbl
-    options = ""
-    "#{indent}create_table :#{tbl.table_name} #{options}do |t|\n#{columns tbl.columns}#{indent}end\n"
+    options = @options
+    if tbl.primary_key
+      options << ":primary_key => #{tbl.primary_key}" if tbl.primary_key != 'id'
+    else
+      options << ':id => false'
+    end
+    options_str = options.present? ? options.join(", ")+" " : ""
+
+    "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns tbl.columns}#{indent}end\n"
   end
 
   def columns cols
@@ -127,6 +138,7 @@ class ActiveRecord::Dumper
   end
 
   def column col
-    "#{indent}  #{col.name}\n"
+    # TODO: align type by longest type name
+    "#{indent}  t.#{col.type} \"#{col.name}\"\n"
   end
 end
