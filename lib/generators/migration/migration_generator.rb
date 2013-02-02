@@ -68,23 +68,25 @@ class Migrator
   end
 
   def model_tables
-    models.inject({}) do |h,m|
+    models.inject({}) do |result,model|
       # create an identical table definition except columns reflects the desired columns, not the actual ones
-      table_definition = Migrator::TableDefinition.new(m.table_name, m.primary_key, m.richfield_definition.columns)
-      h.merge! m.table_name => table_definition
+      table_definition = Migrator::TableDefinition.new(model.table_name, model.primary_key, model.richfield_definition.columns)
+      result.merge! model.table_name => table_definition
     end
   end
 
-  def join_table assoc, connection
-    table_name = assoc.options[:join_table]
+  def define_join_table association, connection
+    table_name = association.options[:join_table]
     table = ActiveRecord::ConnectionAdapters::TableDefinition.new(connection)
-    [assoc.foreign_key.to_s, assoc.association_foreign_key.to_s].sort.each { |aname| table.column(aname, :references) }
+    [association.foreign_key.to_s, association.association_foreign_key.to_s].sort.each { |aname| table.column(aname, :references) }
     { table_name => Migrator::TableDefinition.new(table_name, false, table.columns) }
   end
 
   def habtm_tables
-    models.inject({}) do |mh,m|
-      mh.merge! m.reflect_on_all_associations(:has_and_belongs_to_many).inject({}) { |ah,a| ah.merge! join_table(a, m.connection) }
+    models.inject({}) do |mh,model|
+      mh.merge! model.reflect_on_all_associations(:has_and_belongs_to_many).inject({}) { |ah,association|
+        ah.merge! define_join_table(association, model.connection)
+      }
     end
   end
 
