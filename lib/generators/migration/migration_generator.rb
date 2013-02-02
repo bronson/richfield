@@ -114,7 +114,7 @@ class ActiveRecord::Dumper
   end
 
   def tables tbls
-    tbls.sort_by(&:table_name).map { |t| table t }.join
+    tbls.sort_by(&:table_name).map { |t| table t }.join("\n")
   end
 
   def table tbl
