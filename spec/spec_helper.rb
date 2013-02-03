@@ -31,3 +31,8 @@ def model name, &block
     m.class_eval(&block) if block
   end
 end
+
+def test_migrator *args
+  result = args.delete_at(-1)
+  expect(Richfield::Migrator.new(args,[]).generate.to_hash).to eq result
+end
