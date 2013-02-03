@@ -1,6 +1,9 @@
-ENV["RAILS_ENV"] ||= 'test'
-require File.expand_path("../../config/environment", __FILE__)
-Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
+#ENV["RAILS_ENV"] ||= 'test'
+#require File.expand_path("../../config/environment", __FILE__)
+#Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
+
+require 'active_record'
+require File.expand_path("../../lib/richfield/migrator", __FILE__)
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
