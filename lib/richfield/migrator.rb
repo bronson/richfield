@@ -72,13 +72,20 @@ module Richfield
     def down_body indent
     end
 
+
+    # everything below here is just for testability
+
+    def struct_to_hash s
+      Hash[s.each_pair.to_a]
+    end
+
     def to_hash
-      [:@create_tables, :@drop_tables].inject({}) do |h,key|
-        var = instance_variable_get(key)
-        unless var.empty?
-          h.merge! key => var.map { |v| Hash[v.each_pair.to_a] }
+      { create:[] }.tap do |result|
+        @create_tables.each do |table|
+          columns = table.columns.map { |col| struct_to_hash(col).reject { |k,v| k == :base || v.nil? } }
+          puts columns.inspect
+          result[:create] << struct_to_hash(table).merge(columns: columns)
         end
-        h
       end
     end
   end

@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Richfield::Migrator do
   it "ignores models that don't declare fields" do
     empty = Class.new(ActiveRecord::Base)
-    expect(Richfield::Migrator.new([empty],[]).generate.to_hash).to eq({})
+    expect(Richfield::Migrator.new([empty],[]).generate.to_hash).to eq({create:[]})
   end
 
   it "creates an empty table when no fields defined" do
@@ -11,9 +11,9 @@ describe Richfield::Migrator do
       self.table_name = :empty
       fields
     }
-    # expect(Richfield::Migrator.new([empty],[]).generate.to_hash).to eq({
-    #   :@create_tables => [{:table_name=>"empty", :primary_key=>"id", :columns=>[]}]
-    #   })
+    expect(Richfield::Migrator.new([empty],[]).generate.to_hash).to eq({
+      create: [{table_name: "empty", primary_key: "id", columns: [{:name=>"id", :type=>:primary_key}]}]
+      })
   end
 
   it "creates a simple table"
