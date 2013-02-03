@@ -1,1 +1,1 @@
-require 'richfield/active_record/base'
+require 'richfield/active_record_base'

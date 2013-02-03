@@ -21,10 +21,16 @@ module Richfield
     end
 
     def model_tables
-      @models.inject({}) do |result,model|
-        # create an identical table definition except columns reflects the desired columns, not the actual ones
-        table_definition = TableDefinition.new(model.table_name, model.primary_key, model.richfield_definition.columns)
-        result.merge! model.table_name => table_definition
+      {}.tap do |result|
+        @models.each do |model|
+          # create an identical table definition except columns reflects the desired columns, not the actual ones
+          raise "richfield's ar extension wasn't loaded" unless model.respond_to? :richfield_definition
+          columns = model.richfield_definition.columns
+          unless columns.empty?
+            table_definition = TableDefinition.new(model.table_name, model.primary_key, columns)
+            result.merge! model.table_name => table_definition
+          end
+        end
       end
     end
 
@@ -64,6 +70,16 @@ module Richfield
     end
 
     def down_body indent
+    end
+
+    def to_hash
+      [:@create_tables, :@drop_tables].inject({}) do |h,key|
+        var = instance_variable_get(key)
+        unless var.empty?
+          h.merge! key => var.map { |v| Hash[v.each_pair.to_a] }
+        end
+        h
+      end
     end
   end
 end

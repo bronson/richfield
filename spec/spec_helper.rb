@@ -4,6 +4,7 @@
 
 require 'active_record'
 require File.expand_path("../../lib/richfield/migrator", __FILE__)
+require File.expand_path("../../lib/richfield/active_record_base", __FILE__)
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
@@ -20,3 +21,6 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = "random"
 end
+
+# because we're using real models, AR complains if there's no open db connection
+ActiveRecord::Base.establish_connection :adapter => 'sqlite3', :database => ':memory:'
