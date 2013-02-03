@@ -1,10 +1,8 @@
-#ENV["RAILS_ENV"] ||= 'test'
-#require File.expand_path("../../config/environment", __FILE__)
-#Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
-
 require 'active_record'
-require File.expand_path("../../lib/richfield/migrator", __FILE__)
-require File.expand_path("../../lib/richfield/active_record_base", __FILE__)
+
+$:.unshift File.expand_path("../../lib", __FILE__)
+require 'richfield/migrator'
+require 'richfield/active_record_base'
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
@@ -27,7 +25,7 @@ ActiveRecord::Base.establish_connection :adapter => 'sqlite3', :database => ':me
 
 def model name, &block
   Class.new(ActiveRecord::Base) do |m|
-    self.table_name = name
+    self.table_name = name.to_s
     m.class_eval(&block) if block
   end
 end

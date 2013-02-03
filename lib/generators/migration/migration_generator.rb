@@ -1,6 +1,7 @@
-# create_table, drop_table, rename_table, add_column, remove_column, rename_column, change_column, add_index, remove_index, rename_index, add_timestamps, remove_timestamps
+# create_table, drop_table, rename_table, add_column, remove_column, rename_column, change_column, change_column_null?, add_index, remove_index, rename_index, add_timestamps, remove_timestamps
 
 # TO TEST:
+# - should probably make fields opt-out instead of opt-in since lots of valid models don't have fields.  fields false?
 # - won't run if there are pending migrations
 # - prints "models and schema match -- nothing to do"
 # - names migration if name isn't supplied.  (probably a bunch of tests: add field, remove field, rename field, rename table, etc)

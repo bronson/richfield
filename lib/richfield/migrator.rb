@@ -16,7 +16,7 @@ module Richfield
       create_names = desired_tables.keys - @tables
       drop_names = @tables - desired_tables.keys
 
-      create_tables = create_names.map { |name| desired_tables[name] }
+      create_tables = create_names.sort.map { |name| desired_tables[name] }
       Output.new create_tables, drop_names
     end
 
@@ -33,9 +33,9 @@ module Richfield
       end
     end
 
-    def define_join_table association, connection
+    def define_join_table association
       table_name = association.options[:join_table]
-      table = ActiveRecord::ConnectionAdapters::TableDefinition.new(connection)
+      table = ActiveRecord::ConnectionAdapters::TableDefinition.new(association.active_record.connection)
       [association.foreign_key.to_s, association.association_foreign_key.to_s].sort.each { |aname| table.column(aname, :references) }
       { table_name => TableDefinition.new(table_name, false, table.columns) }
     end
@@ -45,7 +45,7 @@ module Richfield
       # since they're supposed to be identical this should be no big deal...?
       @models.inject({}) do |mh,model|
         mh.merge! model.reflect_on_all_associations(:has_and_belongs_to_many).inject({}) { |ah,association|
-          ah.merge! define_join_table(association, model.connection)
+          ah.merge! define_join_table(association)
         }
       end
     end
@@ -82,7 +82,6 @@ module Richfield
       { create:[] }.tap do |result|
         @create_tables.each do |table|
           columns = table.columns.map { |col| struct_to_hash(col).reject { |k,v| k == :base || v.nil? } }
-          puts columns.inspect
           result[:create] << struct_to_hash(table).merge(columns: columns)
         end
       end
