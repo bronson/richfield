@@ -28,7 +28,10 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
     raise Thor::Error, "API Mismatch?" if ActiveRecord::Generators::MigrationGenerator.all_tasks.except('singular_name').keys != ['create_migration_file']
     return if migrations_pending?
 
-    @migration = Migrator.new.generate
+    Rails.application.eager_load!
+    models = ActiveRecord::Base.descendants.select { |m| m.respond_to? :fields }
+    tables = ActiveRecord::Base.connection.tables
+    @migration = Richfield::Migrator.new(models,tables).generate
     super(*args)
   end
 
