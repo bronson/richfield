@@ -25,9 +25,8 @@ module Richfield
         @models.each do |model|
           # create an identical table definition except columns reflects the desired columns, not the actual ones
           raise "richfield's ar extension wasn't loaded" unless model.respond_to? :richfield_definition
-          columns = model.richfield_definition.columns
-          unless columns.empty?
-            table_definition = TableDefinition.new(model.table_name, model.primary_key, columns)
+          unless model.richfield_definition(false).nil?
+            table_definition = TableDefinition.new(model.table_name, model.primary_key, model.richfield_definition.columns)
             result.merge! model.table_name => table_definition
           end
         end

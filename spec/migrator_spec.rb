@@ -12,8 +12,21 @@ describe Richfield::Migrator do
       fields
     }
     expect(Richfield::Migrator.new([empty],[]).generate.to_hash).to eq({
-      create: [{table_name: "empty", primary_key: "id", columns: [{:name=>"id", :type=>:primary_key}]}]
-      })
+      create: [
+        {table_name: "empty", primary_key: "id", columns: [
+          {:name=>"id", :type=>:primary_key}    # even empty tables have an id column
+        ]} ]
+    })
+  end
+
+  it "creates a truly empty table when no fields and no primary key" do
+    empty = Class.new(ActiveRecord::Base) {
+      self.table_name = :empty
+      fields :id => false
+    }
+    expect(Richfield::Migrator.new([empty],[]).generate.to_hash).to eq({
+      create: [ {table_name: "empty", primary_key: "id", columns: []} ]
+    })
   end
 
   it "creates a simple table"

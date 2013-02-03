@@ -3,8 +3,8 @@ module Richfield
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def richfield_definition
-        @richfield_definiton ||= ActiveRecord::ConnectionAdapters::TableDefinition.new(connection)
+      def richfield_definition vivify=true
+        @richfield_definiton ||= vivify ? ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) : nil
       end
 
       def fields options={}
