@@ -24,3 +24,10 @@ end
 
 # because we're using real models, AR complains if there's no open db connection
 ActiveRecord::Base.establish_connection :adapter => 'sqlite3', :database => ':memory:'
+
+def model name, &block
+  Class.new(ActiveRecord::Base) do |m|
+    self.table_name = name
+    m.class_eval(&block) if block
+  end
+end
