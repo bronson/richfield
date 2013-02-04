@@ -24,7 +24,7 @@ describe Richfield::Migrator do
     )
   end
 
-  it "update simple relations" do
+  it "handles switching belongs_to ownership" do
     test_migrator(
       model(:handlers) {
         fields
@@ -36,10 +36,10 @@ describe Richfield::Migrator do
       },
 
       table(:handlers) { |t|
-        t.integer :id
+        t.primary_key :id
       },
       table(:dogs) { |t|
-        t.integer :id
+        t.primary_key :id
         t.integer :handler_id
       },
 
@@ -50,8 +50,53 @@ describe Richfield::Migrator do
     )
   end
 
-  it "changes a column that's now :null => false"
-  it "changes a column that's now :null => nil or :null => true"
+  it "changes a column from an integer to a string" do
+    test_migrator(
+      model(:changing_table) {
+        fields :id => false do |t|
+          t.string :year
+        end
+      },
+      table(:changing_table) { |t|
+        t.integer :year
+      },
+      { change: [
+        { call: :change_column, table: "changing_table", name: "year", type: :string, options: { limit: 255 }},
+      ]}
+    )
+  end
+
+  it "changes a column that's now :null => false" do
+    test_migrator(
+      model(:non_null) {
+        fields :id => false do |t|
+          t.string :name, :null => false
+        end
+      },
+      table(:non_null) { |t|
+        t.string :name
+      },
+      { change: [
+        { call: :change_column, table: "non_null", name: "name", type: :string, options: { limit: 255, null: false }},
+      ]}
+    )
+  end
+
+  it "changes a column that's now :null => nil or :null => true" do
+    test_migrator(
+      model(:nullable) {
+        fields :id => false do |t|
+          t.string :name
+        end
+      },
+      table(:nullable) { |t|
+        t.string :name, :null => false
+      },
+      { change: [
+        { call: :change_column, table: "nullable", name: "name", type: :string, options: { limit: 255 }},
+      ]}
+    )
+  end
 
   it "adds a table's primary key"
   it "removes a table's primary key"

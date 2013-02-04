@@ -1,4 +1,5 @@
 require 'active_record'
+require 'active_support/core_ext/hash/diff'
 
 $:.unshift File.expand_path("../../lib", __FILE__)
 require 'richfield/migrator'
@@ -45,5 +46,6 @@ def test_migrator *args
   models,args = args.partition { |a| a.superclass == ActiveRecord::Base }
 
   raise "unrecognized arguments: #{args.inspect}" unless args.empty?
+  raise "unexpected result: #{result.inspect}" unless result.is_a? Hash
   expect(Richfield::Migrator.new(models,tables).generate.to_hash).to eq result
 end

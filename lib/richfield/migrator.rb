@@ -69,7 +69,7 @@ module Richfield
         val = column.send option
         result[option] = val unless val.nil?
       end
-      result.empty? ? nil : result
+      result
     end
 
     def detect_changes model, table
@@ -81,14 +81,23 @@ module Richfield
       table_columns = table.columns.index_by { |col| col.name }
       to_add = model_columns.keys - table_columns.keys
       to_remove = table_columns.keys - model_columns.keys
+      to_change = model_columns.keys - to_add - to_remove
 
       # TODO: can the output be stored in ActiveRecord::Migration::CommandRecorder?
       [].tap do |result|
         to_add.each { |col|
           options = extract_options(model_columns[col])
           change = { call: :add_column, table: model.table_name, name: col, type: model_columns[col].type}
-          change.merge!(options: options) if options
+          change.merge!(options: options) unless options.empty?
           result << change
+        }
+        to_change.each { |col|    # merge this with to_add?
+          options = extract_options(model_columns[col])
+          unless options && options.diff(extract_options(table_columns[col])).empty?
+            change = { call: :change_column, table: model.table_name, name: col, type: model_columns[col].type}
+            change.merge!(options: options) if options
+            result << change
+          end
         }
         to_remove.each { |col| result << { call: :remove_column, table: model.table_name, name: col } }
       end
