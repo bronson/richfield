@@ -1,5 +1,10 @@
 == Richfield 0.1 ==
 
+- use rspec to test generator.
+
+- get rid of doctest -- it produces awful tests and boring, unreadable
+  documentation.
+
 - Remove the hobofields executable.  No need.
 
 
