@@ -60,6 +60,13 @@ module Richfield
       end
     end
 
+    def create_change call, model, column
+      options = Richfield::ColumnOptions.extract_options(column, false)
+      change = { call: call, table: model.table_name, name: column.name, type: column.type}
+      change.merge!(options: options) unless options.empty?
+      change
+    end
+
     def detect_changes model, table
       unless model.table_name == table.table_name
         raise "model name is #{model.table_name} and table name is #{table.table_name}??"
@@ -72,22 +79,15 @@ module Richfield
       to_change = model_columns.keys - to_add - to_remove
 
       # TODO: can the output be stored in ActiveRecord::Migration::CommandRecorder?
-      # ok, this now sucks.  something must be done.
       [].tap do |result|
-        to_add.each { |col|
-          options = Richfield::ColumnOptions.extract_options(model_columns[col], false)
-          change = { call: :add_column, table: model.table_name, name: col, type: model_columns[col].type}
-          change.merge!(options: options) unless options.empty?
-          result << change
+        to_add.each { |column|
+          result << create_change(:add_column, model, model_columns[column])
         }
-        to_change.each { |col|    # merge this with to_add?
-          model_args = Richfield::ColumnOptions.extract_options(model_columns[col], true)
-          table_args = Richfield::ColumnOptions.extract_options(table_columns[col], true)
-          unless model_args.diff(table_args).empty?
-            model_options = Richfield::ColumnOptions.extract_options(model_columns[col], false)
-            change = { call: :change_column, table: model.table_name, name: col, type: model_columns[col].type}
-            change.merge!(options: model_options) unless model_options.empty?
-            result << change
+        to_change.each { |column|    # merge this with to_add?
+          model_args = Richfield::ColumnOptions.extract_options(model_columns[column], true)
+          table_args = Richfield::ColumnOptions.extract_options(table_columns[column], true)
+          if !model_args.diff(table_args).empty?
+            result << create_change(:change_column, model, model_columns[column])
           end
         }
         to_remove.each { |col| result << { call: :remove_column, table: model.table_name, name: col } }
