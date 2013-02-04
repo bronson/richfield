@@ -9,15 +9,17 @@ module Richfield
     def initialize models, tables
       @models = models
       @tables = tables
+      @ignore_names = %w[schema_migrations]
     end
 
     def generate
       desired_tables = {}.merge(model_tables).merge(habtm_tables)
-      create_names = desired_tables.keys - @tables
-      drop_names = @tables - desired_tables.keys
+      create_names = desired_tables.keys - @tables - @ignore_names
+      drop_names = @tables - desired_tables.keys - @ignore_names
 
       create_tables = create_names.sort.map { |name| desired_tables[name] }
-      Output.new create_tables, drop_names
+      drop_tables = drop_names.sort
+      Output.new create_tables, drop_tables
     end
 
     def model_tables
@@ -61,11 +63,17 @@ module Richfield
       Richfield::SchemaFormatter.new(indent).tables(@create_tables)
     end
 
-    def drop_tables
+    def drop_tables indent
+      @drop_tables.map { |table|
+        "#{indent}drop_table #{table.inspect}\n"
+      }.join
     end
 
     def up_body indent
-      create_tables indent
+      [
+        create_tables(indent),
+        drop_tables(indent)
+      ].reject(&:blank?).join("\n")
     end
 
     def down_body indent
@@ -79,11 +87,13 @@ module Richfield
     end
 
     def to_hash
-      { create:[] }.tap do |result|
+      {}.tap do |result|
+        result[:create] = [] if @create_tables.present?
         @create_tables.each do |table|
           columns = table.columns.map { |col| struct_to_hash(col).reject { |k,v| k == :base || v.nil? } }
           result[:create] << struct_to_hash(table).merge(columns: columns)
         end
+        result[:drop] = @drop_tables if @drop_tables.present?
       end
     end
   end

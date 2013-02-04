@@ -5,10 +5,7 @@ require File.expand_path("../spec_helper", __FILE__)
 
 describe Richfield::Migrator do
   it "ignores models that don't declare fields" do
-    test_migrator(
-      model(:ignored),
-      { create: [] }
-    )
+    test_migrator(model(:ignored), {})
   end
 
   it "creates an primary key when no fields defined" do
@@ -225,6 +222,19 @@ describe Richfield::Migrator do
           { name: "name", type: :string, limit: 255 }
         ]}
       ]}
+    )
+  end
+
+  it "drops tables" do
+    test_migrator(
+      # no models
+      table('ravens') { |t|
+        t.string :first
+      },
+      table('empties') { |t|
+        t.string :name
+      },
+      { drop: [ 'empties', 'ravens' ]}
     )
   end
 

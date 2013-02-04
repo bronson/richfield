@@ -1,6 +1,16 @@
 # This is heavily copied from ActiveRecord::SchemaDumper and should produce identical output.
 # One day SchemaDumper could be converted to use this to format its output.
 
+# - Get rid of @types and any AR dependency.  We only format, we don't munge.
+# to test:
+# - can display no columns
+# - can display a single column
+# - can display a bunch of columns
+# - can display a table with no columns
+# - can display a table with a bunch of columns
+# - display a table with all the :id=>false, :primary_key, :force, etc options
+# - output is sorted by input
+
 module Richfield
   class SchemaFormatter
     attr_reader :indent, :options
@@ -12,7 +22,7 @@ module Richfield
     end
 
     def tables tbls
-      tbls.sort_by(&:table_name).map { |t| table t }.join("\n")
+      tbls.map { |t| table t }.join("\n")
     end
 
     def table tbl
