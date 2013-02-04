@@ -46,7 +46,7 @@ module Richfield
 
     # returns the keys in cols in the order that they should be displayed
     def keys_present cols
-      [:type, :name, :limit, :precision, :scale, :default, :null] & cols.map { |k|
+      [:type, :name].concat(Richfield::ColumnOptions) & cols.map { |k|
         k.members.reject { |v| k[v].nil? }
       }.flatten
     end

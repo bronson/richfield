@@ -1,10 +1,15 @@
-# create_table, drop_table, rename_table, add_column, remove_column, rename_column, change_column, change_column_null?, add_index, remove_index, rename_index, add_timestamps, remove_timestamps
+# create_table, drop_table
+# add_column, remove_column
+# change_column, change_column_null?
+# rename_table rename_column
+# add_timestamps, remove_timestamps
+# add_index, remove_index, rename_index
 
 # TO TEST:
-# - drops tables
+# - adds columns and references
 # - removes columns and references
+  # - renames tables if possible
 # - renames columns if possible
-# - renames table if possible
 # - sti
 # - won't run if there are pending migrations
 # - prints "models and schema match -- nothing to do"
@@ -28,7 +33,10 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
 
     Rails.application.eager_load!
     models = ActiveRecord::Base.descendants.select { |m| m.respond_to? :fields }
-    tables = ActiveRecord::Base.connection.tables
+    tables = ActiveRecord::Base.connection.tables.map { |table|
+      Richfield::TableDefinition.new(table, nil, ActiveRecord::Base.connection.columns(table))
+    }
+
     @migration = Richfield::Migrator.new(models,tables).generate
     super(*args)
   end

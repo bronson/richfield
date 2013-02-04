@@ -166,8 +166,8 @@ describe Richfield::Migrator do
         ]},
 
         { table_name: "roles_users", primary_key: false, columns: [
-          { name: "role_id", type: :references },
-          { name: "user_id", type: :references }
+          { name: "role_id", type: :integer },
+          { name: "user_id", type: :integer }
         ]},
 
         { table_name: "users", primary_key: "id", columns: [
@@ -241,8 +241,27 @@ describe Richfield::Migrator do
   it "adds a type column when sti is used"   # when subclasses exist but they don't declare any fields
   it "handles fields declarations in sti subclasses"   # when subclasses declare fields
 
+  it "adds a column to a truly empty table" do
+    test_migrator(
+      model(:truly_empty) {
+        fields :id => false do |t|
+          t.string :name, :default => "nope"
+        end
+      },
+      table(:truly_empty) {
+      },
+      { change: [
+        { call: :add_column, table: 'truly_empty', name: 'name', type: :string, options: { limit: 255, default: "nope" } }
+      ]}
+    )
+  end
+
   it "adds a simple column"
   it "removes a simple column"
+
+  it "adds a table's primary key"
+  it "removes a table's primary key"
+  it "changes a table's primary key"
 
   it "removes a simple association"
   it "removes a polymorphic association"

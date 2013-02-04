@@ -33,7 +33,7 @@ end
 def table name, &block
   td = ActiveRecord::ConnectionAdapters::TableDefinition.new(ActiveRecord::Base.connection)
   block.call td if block
-  Richfield::TableDefinition.new name, 'id', td.columns
+  Richfield::TableDefinition.new name.to_s, 'id', td.columns
 end
 
 def test_migrator *args
@@ -44,7 +44,6 @@ def test_migrator *args
   # models,args = args.partition { |a| a.kind_of? ActiveRecord::Base }
   models,args = args.partition { |a| a.superclass == ActiveRecord::Base }
 
-  tables = tables.map { |t| t.table_name } # temporary
   raise "unrecognized arguments: #{args.inspect}" unless args.empty?
   expect(Richfield::Migrator.new(models,tables).generate.to_hash).to eq result
 end
