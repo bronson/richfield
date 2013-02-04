@@ -39,13 +39,16 @@ end
 
 def test_migrator *args
   result = args.delete_at(-1)
+  debug = args.delete :debugger
   tables,args = args.partition { |a| a.kind_of? Richfield::TableDefinition }
 
   # Ruby you can be so weird! Class.new(ActiveRecord::Base).is_a?(ActiveRecord::Base) => false
   # models,args = args.partition { |a| a.kind_of? ActiveRecord::Base }
   models,args = args.partition { |a| a.superclass == ActiveRecord::Base }
 
+  output = Richfield::Migrator.new(models,tables).generate
+  debugger if debug
   raise "unrecognized arguments: #{args.inspect}" unless args.empty?
   raise "unexpected result: #{result.inspect}" unless result.is_a? Hash
-  expect(Richfield::Migrator.new(models,tables).generate.to_hash).to eq result
+  expect(output.to_hash).to eq result
 end
