@@ -10,6 +10,7 @@
   # - renames tables if possible
 # - renames columns if possible
 # - sti
+# - a hideously complex schema with matching tables produces no migration
 # - won't run if there are pending migrations
 # - prints "models and schema match -- nothing to do"
 # - names migration if name isn't supplied.  (probably a bunch of tests: add field, remove field, rename field, rename table, etc)

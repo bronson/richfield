@@ -64,12 +64,12 @@ module Richfield
     end
 
     def extract_options column
-      {}.tap do |result|
-        ColumnOptions.each do |option|
-          val = column.send option
-          result[option] = val unless val.nil?
-        end
+      result = {}
+      ColumnOptions.each do |option|
+        val = column.send option
+        result[option] = val unless val.nil?
       end
+      result.empty? ? nil : result
     end
 
     def detect_changes model, table
@@ -84,7 +84,12 @@ module Richfield
 
       # TODO: can the output be stored in ActiveRecord::Migration::CommandRecorder?
       [].tap do |result|
-        to_add.each { |col| result << { call: :add_column, table: model.table_name, name: col, type: model_columns[col].type, options: extract_options(model_columns[col]) } }
+        to_add.each { |col|
+          options = extract_options(model_columns[col])
+          change = { call: :add_column, table: model.table_name, name: col, type: model_columns[col].type}
+          change.merge!(options: options) if options
+          result << change
+        }
         to_remove.each { |col| result << { call: :remove_column, table: model.table_name, name: col } }
       end
     end

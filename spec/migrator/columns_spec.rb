@@ -24,7 +24,31 @@ describe Richfield::Migrator do
     )
   end
 
-  it "adds and removes columns and relations"
+  it "update simple relations" do
+    test_migrator(
+      model(:handlers) {
+        fields
+        belongs_to :dog
+      },
+      model(:dogs) {
+        fields
+        has_many :handlers
+      },
+
+      table(:handlers) { |t|
+        t.integer :id
+      },
+      table(:dogs) { |t|
+        t.integer :id
+        t.integer :handler_id
+      },
+
+      { change: [
+        { call: :remove_column, table: "dogs",     name: "handler_id" },
+        { call: :add_column,    table: "handlers", name: "dog_id", type: :integer }
+      ]}
+    )
+  end
 
   it "changes a column that's now :null => false"
   it "changes a column that's now :null => nil or :null => true"
