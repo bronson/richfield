@@ -1,5 +1,6 @@
-require File.expand_path("../spec_helper", __FILE__)
+# Testing table-oriented commands: create_table, drop_table, etc
 
+require File.expand_path("../../spec_helper", __FILE__)
 
 # TODO: get rid of limit:255 nonsense
 
@@ -225,6 +226,8 @@ describe Richfield::Migrator do
     )
   end
 
+  it "creates an sti table"
+
   it "drops tables" do
     test_migrator(
       # no models
@@ -238,45 +241,5 @@ describe Richfield::Migrator do
     )
   end
 
-  it "adds a type column when sti is used"   # when subclasses exist but they don't declare any fields
-  it "handles fields declarations in sti subclasses"   # when subclasses declare fields
-
-  it "adds a column to a truly empty table" do
-    test_migrator(
-      model(:truly_empty) {
-        fields :id => false do |t|
-          t.string :name, :default => "nope"
-        end
-      },
-      table(:truly_empty) {
-      },
-      { change: [
-        { call: :add_column, table: 'truly_empty', name: 'name', type: :string, options: { limit: 255, default: "nope" } }
-      ]}
-    )
-  end
-
-  it "adds a simple column"
-  it "removes a simple column"
-
-  it "adds a table's primary key"
-  it "removes a table's primary key"
-  it "changes a table's primary key"
-
-  it "removes a simple association"
-  it "removes a polymorphic association"
-  it "removes a habtm table"
-
-  it "renames columns where possible"
-  it "renames tables where possible"
-
-  it "automatically adds an index for references"
-  it "automatically adds an index for foreign key"
-  it "doesn't add an index if told not to"
-
-  it "automatically names the migration if possible"
+  it "drops a habtm join table"
 end
-
-# these require testing with the full rails stack:
-# it "won't run if there are pending migrations"
-# it "works with config.active_record.timestamped_migrations = false"

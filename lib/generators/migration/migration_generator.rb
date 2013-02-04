@@ -1,9 +1,8 @@
-# create_table, drop_table
-# add_column, remove_column
-# change_column, change_column_null?
+# change_column
 # rename_table rename_column
 # add_timestamps, remove_timestamps
 # add_index, remove_index, rename_index
+# change_column_null?
 
 # TO TEST:
 # - adds columns and references
@@ -17,7 +16,6 @@
 # - automatically add a fields block when generating models (crib from model_injection.rb and model_generator.rb)
 # - make sure we work with config.active_record.timestamped_migrations = false
 # - should probably make fields opt-out instead of opt-in since lots of valid models don't have fields.  fields false?
-
 
 require 'rails/generators/active_record/migration/migration_generator'
 require 'richfield/migrator'
