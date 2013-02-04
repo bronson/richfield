@@ -2,7 +2,6 @@
 
 require File.expand_path("../../spec_helper", __FILE__)
 
-# TODO: get rid of limit:255 nonsense
 
 describe Richfield::Migrator do
   it "ignores models that don't declare fields" do
@@ -46,7 +45,7 @@ describe Richfield::Migrator do
       { create: [
         { table_name: "simple1", primary_key: "id", columns: [
           { name: "id", type: :primary_key },
-          { name: "first_name", type: :string, limit: 255 },
+          { name: "first_name", type: :string },
           { name: "last_name", type: :string, limit: 40 },
           { name: "created_at", type: :datetime, :null => false },
           { name: "updated_at", type: :datetime, :null => false }
@@ -132,14 +131,14 @@ describe Richfield::Migrator do
       { create: [
         { table_name: "articles", primary_key: "id", columns: [
           { name: "id", type: :primary_key },
-          { name: "name", type: :string, limit: 255 },
+          { name: "name", type: :string },
         ]},
 
         { table_name: "comments", primary_key: "id", columns: [
           { name: "id", type: :primary_key },
           { name: "content", type: :text },
           { name: "commentable_id", type: :integer },
-          { name: "commentable_type", type: :string, limit: 255 }
+          { name: "commentable_type", type: :string }
         ]}
       ]}
     )
@@ -173,7 +172,7 @@ describe Richfield::Migrator do
 
         { table_name: "users", primary_key: "id", columns: [
           { name: "id", type: :primary_key },
-          { name: "name", type: :string, limit: 255 }
+          { name: "name", type: :string }
         ]}
       ]}
     )
@@ -215,12 +214,12 @@ describe Richfield::Migrator do
 
         { table_name: "patients", primary_key: "id", columns: [
           { name: "id", type: :primary_key },
-          { name: "name", type: :string, limit: 255 }
+          { name: "name", type: :string }
         ]},
 
         { table_name: "physicians", primary_key: "id", columns: [
           { name: "id", type: :primary_key },
-          { name: "name", type: :string, limit: 255 }
+          { name: "name", type: :string }
         ]}
       ]}
     )

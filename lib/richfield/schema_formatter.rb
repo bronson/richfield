@@ -18,7 +18,6 @@ module Richfield
     def initialize indent
       @indent = indent
       @options = [':force => true']
-      @types = ActiveRecord::Base.connection.native_database_types
     end
 
     def tables tbls
@@ -44,40 +43,69 @@ module Richfield
       "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns cols}#{indent}end\n"
     end
 
-    # returns the keys in cols in the order that they should be displayed
-    def keys_present cols
-      [:type, :name].concat(Richfield::ColumnOptions) & cols.map { |k|
-        k.members.reject { |v| k[v].nil? }
-      }.flatten
-    end
-
     # formats the named value for display
-    def format_value col, key
-      value = col[key]
+    def format_value column, option
+      value = column[option]
 
-      if key == :type
+      if option == :type
         "t." + value.to_s
-      elsif key == :name
+      elsif option == :name
         value.inspect + ','
-      elsif !value.nil?
-        if key == :limit && (value == @types[col.type][:limit] || col.type == :decimal)
-          ''
-        else
-          "#{key.inspect} => #{value.inspect},"
-        end
       else
-        ''
+        value = Richfield::Migrator.option_filter(column, option)
+        !value.nil? ? "#{option.inspect} => #{value.inspect}," : ''
       end
     end
 
     def columns cols
-      keys = keys_present(cols)
+      keys = Richfield::ColumnOptions.argument_keys(cols)
       grid = cols.map { |col| keys.map { |key| format_value col, key } }              # 2D grid of table definition values
       grid.each { |row| row[row.rindex { |f| !f.blank? }].gsub!(/,$/, '') }           # remove trailing commas
       lengths = keys.map { |key| grid.map { |row| row[keys.index(key)].length }.max } # maximum width for each grid column
       grid.map { |row| "#{@indent}  " + row.to_enum.with_index.map { |value,i|
         "%-#{lengths[i]}s " % value }.join.gsub(/\s+$/, '') + "\n"
       }.join
+    end
+  end
+
+
+  module ColumnOptions
+    OptionalKeys = [:limit, :precision, :scale, :default, :null]
+    ArgumentKeys = [:type, :name].concat(OptionalKeys)
+
+    # returns options as passed to add_column in the proper order
+    def self.argument_keys columns
+      all_keys = columns.map { |column|
+        column.members.reject { |option| option_filter(column, option).nil? }
+      }.flatten
+      ArgumentKeys & all_keys # trim to known keys and order for display
+    end
+
+    # returns an appropriate display value for this column option or nil if it should be suppressed
+    # note: a value of false means the option should still be displayed!
+    def self.option_filter column, option
+      value = column.send(option)
+      return nil if value.nil?
+
+      # don't display limit if it's set to the default
+      if option == :limit
+        return nil if column.type == :decimal
+        types = ActiveRecord::Base.connection.native_database_types
+        return nil if value == types[column.type][:limit]
+      end
+
+      return value
+    end
+
+    # converts the column options into a displayable hash
+    def self.extract_options column, all_keys
+      options = all_keys ? ArgumentKeys : OptionalKeys
+      result = {}
+      options.each do |option|
+        value = option_filter(column, option)
+        result[option] = value unless value.nil?
+      end
+      result
     end
   end
 end

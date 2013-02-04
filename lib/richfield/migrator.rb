@@ -6,9 +6,6 @@ module Richfield
   # TODO: can we replace this with ActiveRecord::ConnectionAdapters::Table?
   TableDefinition = Struct.new(:table_name, :primary_key, :columns)
 
-  # Optional values in a column definition
-  ColumnOptions = [:limit, :precision, :scale, :default, :null]
-
   class Migrator
     def initialize models, tables
       @models = models
@@ -63,15 +60,6 @@ module Richfield
       end
     end
 
-    def extract_options column
-      result = {}
-      ColumnOptions.each do |option|
-        val = column.send option
-        result[option] = val unless val.nil?
-      end
-      result
-    end
-
     def detect_changes model, table
       unless model.table_name == table.table_name
         raise "model name is #{model.table_name} and table name is #{table.table_name}??"
@@ -84,18 +72,21 @@ module Richfield
       to_change = model_columns.keys - to_add - to_remove
 
       # TODO: can the output be stored in ActiveRecord::Migration::CommandRecorder?
+      # ok, this now sucks.  something must be done.
       [].tap do |result|
         to_add.each { |col|
-          options = extract_options(model_columns[col])
+          options = Richfield::ColumnOptions.extract_options(model_columns[col], false)
           change = { call: :add_column, table: model.table_name, name: col, type: model_columns[col].type}
           change.merge!(options: options) unless options.empty?
           result << change
         }
         to_change.each { |col|    # merge this with to_add?
-          options = extract_options(model_columns[col])
-          unless options && options.diff(extract_options(table_columns[col])).empty?
+          model_args = Richfield::ColumnOptions.extract_options(model_columns[col], true)
+          table_args = Richfield::ColumnOptions.extract_options(table_columns[col], true)
+          unless model_args.diff(table_args).empty?
+            model_options = Richfield::ColumnOptions.extract_options(model_columns[col], false)
             change = { call: :change_column, table: model.table_name, name: col, type: model_columns[col].type}
-            change.merge!(options: options) if options
+            change.merge!(options: model_options) unless model_options.empty?
             result << change
           end
         }
@@ -105,6 +96,7 @@ module Richfield
   end
 
   class Migrator::Output
+    # TODO: make indent be attr_accessor so we can change it w/o creating whole new class?
     def initialize create_tables, drop_tables, change_tables
       @create_tables = create_tables
       @drop_tables = drop_tables
@@ -151,7 +143,9 @@ module Richfield
       {}.tap do |result|
         result[:create] = [] if @create_tables.present?
         @create_tables.each do |table|
-          columns = table.columns.map { |col| struct_to_hash(col).reject { |k,v| k == :base || v.nil? } }
+          columns = table.columns.map { |column|
+            Richfield::ColumnOptions.extract_options(column, true)
+          }
           result[:create] << struct_to_hash(table).merge(columns: columns)
         end
         result[:drop] = @drop_tables if @drop_tables.present?

@@ -3,8 +3,6 @@
 require File.expand_path("../../spec_helper", __FILE__)
 
 
-# TODO: get rid of limit:255 nonsense
-
 describe Richfield::Migrator do
   it "adds a type column when sti is used"   # when subclasses exist but they don't declare any fields
   it "handles fields declarations in sti subclasses"   # when subclasses declare fields
@@ -19,7 +17,7 @@ describe Richfield::Migrator do
       table(:truly_empty) {
       },
       { change: [
-        { call: :add_column, table: 'truly_empty', name: 'name', type: :string, options: { limit: 255, default: "nope" } }
+        { call: :add_column, table: 'truly_empty', name: 'name', type: :string, options: { default: "nope" } }
       ]}
     )
   end
@@ -66,7 +64,7 @@ describe Richfield::Migrator do
 
       { change: [
         { call: :add_column, table: "comments", name: "commentable_id", type: :integer},
-        { call: :add_column, table: "comments", name: "commentable_type", type: :string, options: { limit: 255 }}
+        { call: :add_column, table: "comments", name: "commentable_type", type: :string }
       ]}
     )
   end
@@ -166,7 +164,7 @@ describe Richfield::Migrator do
         t.integer :year
       },
       { change: [
-        { call: :change_column, table: "changing_table", name: "year", type: :string, options: { limit: 255 }}
+        { call: :change_column, table: "changing_table", name: "year", type: :string }
       ]}
     )
   end
@@ -182,7 +180,7 @@ describe Richfield::Migrator do
         t.string :name
       },
       { change: [
-        { call: :change_column, table: "non_null", name: "name", type: :string, options: { limit: 255, null: false }}
+        { call: :change_column, table: "non_null", name: "name", type: :string, options: { null: false }}
       ]}
     )
   end
@@ -198,7 +196,7 @@ describe Richfield::Migrator do
         t.string :name, :null => false
       },
       { change: [
-        { call: :change_column, table: "nullable", name: "name", type: :string, options: { limit: 255 }}
+        { call: :change_column, table: "nullable", name: "name", type: :string }
       ]}
     )
   end
@@ -244,9 +242,13 @@ describe Richfield::Migrator do
         end
       },
       table(:alterkey) { |t|
-        t.integer :t1, :t2
+        t.primary_key :t1
+        t.integer :t2
       },
-      { }
+      { change: [
+        { call: :change_column, table: "alterkey", name: "t2", type: :primary_key},
+        { call: :change_column, table: "alterkey", name: "t1", type: :integer}
+      ]}
     )
   end
 
