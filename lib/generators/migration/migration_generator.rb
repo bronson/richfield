@@ -1,13 +1,14 @@
-# change_column
+# fix :limit => 255
+# try to convert table definition
+# try to convert to command recorder
+# handle down properly
 # rename_table rename_column
 # add_timestamps, remove_timestamps
 # add_index, remove_index, rename_index
 # change_column_null?
 
 # TO TEST:
-# - adds columns and references
-# - removes columns and references
-  # - renames tables if possible
+# - renames tables if possible
 # - renames columns if possible
 # - sti
 # - a hideously complex schema with matching tables produces no migration
