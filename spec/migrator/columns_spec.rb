@@ -191,10 +191,10 @@ describe Richfield::Migrator do
     )
   end
 
-  it "changes a column that's now :null => ok" do
+  it "changes a column that's no longer :null => false" do
     model(:nullable) {
       fields :id => false do |t|
-        t.string :name
+        t.string :name  # null is default
       end
     }
 
@@ -207,6 +207,34 @@ describe Richfield::Migrator do
         { call: :change_column, table: "nullable", name: "name", type: :string }
       ]}
     )
+  end
+
+  it "ignores a model column that's :null => true" do
+    model(:nullable) {
+      fields :id => false do |t|
+        t.string :name, null: true
+      end
+    }
+
+    table(:nullable) { |t|
+      t.string :name
+    }
+
+    test_migrator({})
+  end
+
+  it "ignores a table column that's :null => true" do
+    model(:nullable) {
+      fields :id => false do |t|
+        t.string :name
+      end
+    }
+
+    table(:nullable) { |t|
+      t.string :name, null: true
+    }
+
+    test_migrator({})
   end
 
   it "adds a table's primary key" do

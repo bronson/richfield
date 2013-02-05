@@ -94,6 +94,11 @@ module Richfield
         return nil if value == types[column.type][:limit]
       end
 
+      # only two values for null: empty and false
+      if option == :null
+        return value == false ? false : nil
+      end
+
       return value
     end
 
