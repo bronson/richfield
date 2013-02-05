@@ -25,30 +25,22 @@ end
 ActiveRecord::Base.establish_connection :adapter => 'sqlite3', :database => ':memory:'
 
 def model name, &block
-  Class.new(ActiveRecord::Base) do |m|
+  @models ||= []
+  @models << Class.new(ActiveRecord::Base) do |m|
     self.table_name = name.to_s
     m.class_eval(&block) if block
   end
 end
 
+# TODO: should support migration options: :id => false, :primary_key, etc
 def table name, &block
+  @tables ||= []
   td = ActiveRecord::ConnectionAdapters::TableDefinition.new(ActiveRecord::Base.connection)
   block.call td if block
-  Richfield::TableDefinition.new name.to_s, 'id', td.columns
+  @tables << Richfield::TableDefinition.new(name.to_s, 'id', td.columns)
 end
 
-def test_migrator *args
-  result = args.delete_at(-1)
-  debug = args.delete :debugger
-  tables,args = args.partition { |a| a.kind_of? Richfield::TableDefinition }
-
-  # Ruby you can be so weird! Class.new(ActiveRecord::Base).is_a?(ActiveRecord::Base) => false
-  # models,args = args.partition { |a| a.kind_of? ActiveRecord::Base }
-  models,args = args.partition { |a| a.superclass == ActiveRecord::Base }
-
-  output = Richfield::Migrator.new(models,tables).generate
-  debugger if debug
-  raise "unrecognized arguments: #{args.inspect}" unless args.empty?
-  raise "unexpected result: #{result.inspect}" unless result.is_a? Hash
+def test_migrator result
+  output = Richfield::Migrator.new(@models||[], @tables||[]).generate
   expect(output.to_hash).to eq result
 end
