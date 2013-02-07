@@ -17,7 +17,7 @@ module Richfield
 
     def initialize indent
       @indent = indent
-      @options = [':force => true']
+      @table_options = [':force => true']
     end
 
     def tables tbls
@@ -25,22 +25,9 @@ module Richfield
     end
 
     def table tbl
-      options = []
-      cols = tbl.columns
-
-      if tbl.primary_key
-        if tbl.primary_key == 'id'
-          cols = cols.dup.reject { |c| c.name == 'id' }
-        else
-          options << ":primary_key => #{tbl.primary_key}"
-        end
-      else
-        options << ':id => false'
-      end
-
-      options.concat @options
-      options_str = options.present? ? options.join(", ")+" " : ""
-      "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns cols}#{indent}end\n"
+      options = tbl.options.merge(@table_options)
+      options_str = options.present? ? options.inspect+" " : ""
+      "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns tbl.columns}#{indent}end\n"
     end
 
     # formats the named value for display
@@ -53,7 +40,7 @@ module Richfield
         value.inspect + ','
       else
         value = Richfield::Migrator.option_filter(column, option)
-        !value.nil? ? "#{option.inspect} => #{value.inspect}," : ''
+        !value.nil? ? "#{option.inspect.gsub(/^{|}$/, '')} => #{value.inspect}," : ''
       end
     end
 
@@ -71,7 +58,7 @@ module Richfield
 
   module ColumnOptions
     OptionalKeys = [:limit, :precision, :scale, :default, :null]
-    ArgumentKeys = [:type, :name].concat(OptionalKeys)
+    ArgumentKeys = [:name, :type].concat(OptionalKeys)
 
     # returns options as passed to add_column in the proper order
     def self.argument_keys columns

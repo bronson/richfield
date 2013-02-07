@@ -1,10 +1,18 @@
 require 'richfield/schema_formatter'
 
 module Richfield
-  # Just enough model to define a table.  It might be better to modify AR::CA::TableDefinition
-  # to keep track of table_name and primary_key?  Or delegate it?
-  # TODO: can we replace this with ActiveRecord::ConnectionAdapters::Table?
-  TableDefinition = Struct.new(:table_name, :primary_key, :columns)
+  # Just enough model to keep track of a table definiton.  It's probably
+  # time to turn this into a full blown class.
+  TableDefinition = Struct.new(:table_name, :options, :columns) do
+    def primary_key
+      return nil if options[:id] == false
+      options[:primary_key] || 'id'
+    end
+
+    def connection
+      nil
+    end
+  end
 
   class Migrator
     def initialize models, tables
@@ -36,7 +44,7 @@ module Richfield
           # create an identical table definition where columns contains the desired columns, not the actual ones
           raise "richfield's ar extension wasn't loaded" unless model.respond_to? :richfield_definition
           unless model.richfield_definition(false).nil?
-            table_definition = TableDefinition.new(model.table_name, model.primary_key, model.richfield_definition.columns)
+            table_definition = TableDefinition.new(model.table_name, model.richfield_table_options || {}, model.richfield_definition.columns)
             result.merge! model.table_name => table_definition
           end
         end
@@ -47,7 +55,7 @@ module Richfield
       table_name = association.options[:join_table]
       table = ActiveRecord::ConnectionAdapters::TableDefinition.new(association.active_record.connection)
       [association.foreign_key.to_s, association.association_foreign_key.to_s].sort.each { |aname| table.column(aname, :integer) }
-      { table_name => TableDefinition.new(table_name, false, table.columns) }
+      { table_name => TableDefinition.new(table_name, { id: false }, table.columns) }
     end
 
     def habtm_tables
@@ -62,7 +70,7 @@ module Richfield
 
     def create_change call, model, column
       options = Richfield::ColumnOptions.extract_options(column, false)
-      change = { call: call, table: model.table_name, name: column.name, type: column.type}
+      change = { call: call, table: model.table_name, name: column.name, type: column.type }
       change.merge!(options: options) unless options.empty?
       change
     end
@@ -74,22 +82,32 @@ module Richfield
 
       model_columns = model.columns.index_by { |col| col.name }
       table_columns = table.columns.index_by { |col| col.name }
+
       to_add = model_columns.keys - table_columns.keys
       to_remove = table_columns.keys - model_columns.keys
       to_change = model_columns.keys - to_add - to_remove
 
       # TODO: can the output be stored in ActiveRecord::Migration::CommandRecorder?
       [].tap do |result|
-        to_add.each { |column|
+        if model.primary_key 
+          to_remove -= [model.primary_key.to_s]  # if the table has a pk, don't remove it just b/c the fieldspec doesn't
+          if !model_columns[model.primary_key.to_s] && !table_columns[model.primary_key.to_s]
+            # model specifies a primary key that isn't the table and not defined in the fields.  Add it.
+            result << create_change(:add_column, model, ActiveRecord::ConnectionAdapters::ColumnDefinition.new(model.connection, model.primary_key, :primary_key))
+          end
+        end
+
+        to_add.each do |column|
           result << create_change(:add_column, model, model_columns[column])
-        }
-        to_change.each { |column|    # merge this with to_add?
+        end
+
+        to_change.each do |column|
           model_args = Richfield::ColumnOptions.extract_options(model_columns[column], true)
           table_args = Richfield::ColumnOptions.extract_options(table_columns[column], true)
           if !model_args.diff(table_args).empty?
             result << create_change(:change_column, model, model_columns[column])
           end
-        }
+        end
         to_remove.each { |col| result << { call: :remove_column, table: model.table_name, name: col } }
       end
     end
@@ -135,10 +153,6 @@ module Richfield
 
     # everything below here is just for testability
 
-    def struct_to_hash s
-      Hash[s.each_pair.to_a]
-    end
-
     def to_hash
       {}.tap do |result|
         result[:create] = [] if @create_tables.present?
@@ -146,7 +160,7 @@ module Richfield
           columns = table.columns.map { |column|
             Richfield::ColumnOptions.extract_options(column, true)
           }
-          result[:create] << struct_to_hash(table).merge(columns: columns)
+          result[:create] << { table_name: table.table_name, options: table.options, columns: columns }.delete_if { |k,v| k == :options && v.empty? }
         end
         result[:drop] = @drop_tables if @drop_tables.present?
         result[:change] = @change_tables if @change_tables.present?

@@ -3,14 +3,15 @@ module Richfield
     extend ActiveSupport::Concern
 
     module ClassMethods
+      attr_reader :richfield_table_options
+
       def richfield_definition vivify=true
-        @richfield_definiton ||= vivify ? ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) : nil
+        @richfield_definiton ||= (vivify ? ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) : nil)
       end
 
       def fields options={}
         cols = richfield_definition
-        # this comes from AR::CA::SchemaStatements#create_table.  Refactor to remove duplication?
-        cols.primary_key(options[:primary_key] || ActiveRecord::Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
+        @richfield_table_options = options
         yield cols if block_given?
       end
 

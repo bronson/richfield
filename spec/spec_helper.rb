@@ -37,7 +37,12 @@ def table name, &block
   @tables ||= []
   td = ActiveRecord::ConnectionAdapters::TableDefinition.new(ActiveRecord::Base.connection)
   block.call td if block
-  @tables << Richfield::TableDefinition.new(name.to_s, 'id', td.columns)
+
+  # Convert AR::CA::ColumnDefinition to actual AR::CA::Column objects
+  columns = td.columns.map { |column|
+    ActiveRecord::ConnectionAdapters::Column.new(column.name, column.default, column.to_sql, column.null)
+  }
+  @tables << Richfield::TableDefinition.new(name.to_s, 'id', columns)
 end
 
 def test_migrator result

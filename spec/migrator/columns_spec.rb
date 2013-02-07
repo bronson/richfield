@@ -113,7 +113,7 @@ describe Richfield::Migrator do
 
     test_migrator({
       create: [
-        { table_name: "roles_users", primary_key: false, columns: [
+        { table_name: "roles_users", options: {id: false}, columns: [
           { name: "role_id", type: :integer },
           { name: "user_id", type: :integer }
         ]}
@@ -227,61 +227,6 @@ describe Richfield::Migrator do
     end
 
     test_migrator({})
-  end
-
-  it "adds a table's primary key" do
-    model(:now_with_key) {
-      fields do |t|
-        t.string :name
-      end
-    }
-
-    table(:now_with_key) { |t|
-      t.string :name
-    }
-
-    test_migrator(
-      { change: [
-        { call: :add_column, table: "now_with_key", name: "id", type: :primary_key }
-      ]}
-    )
-  end
-
-  it "removes a table's primary key" do
-    model(:now_no_key) do
-      fields id: false do |t|
-        t.string :name
-      end
-    end
-
-    table(:now_no_key) do |t|
-      t.primary_key :id
-      t.string :name
-    end
-
-    test_migrator({
-      change: [
-        { call: :remove_column, table: "now_no_key", name: "id" }
-      ]} )
-  end
-
-  it "changes a table's primary key" do
-    model(:alterkey) do
-      fields primary_key: :t2 do |t|
-        t.integer :t1, :t2
-      end
-    end
-
-    table(:alterkey) do |t|
-      t.primary_key :t1
-      t.integer :t2
-    end
-
-    test_migrator({
-      change: [
-        { call: :change_column, table: "alterkey", name: "t2", type: :primary_key},
-        { call: :change_column, table: "alterkey", name: "t1", type: :integer}
-      ]} )
   end
 
   it "renames columns where possible"
