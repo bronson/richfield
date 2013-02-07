@@ -1,4 +1,5 @@
 require 'richfield/schema_formatter'
+require 'active_support/core_ext/hash/diff'
 
 module Richfield
   # Just enough model to keep track of a table definiton.  It's probably

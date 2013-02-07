@@ -1,5 +1,4 @@
 require 'active_record'
-require 'active_support/core_ext/hash/diff'
 
 $:.unshift File.expand_path("../../lib", __FILE__)
 require 'richfield/migrator'
