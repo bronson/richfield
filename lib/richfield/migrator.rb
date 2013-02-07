@@ -89,7 +89,7 @@ module Richfield
 
       # TODO: can the output be stored in ActiveRecord::Migration::CommandRecorder?
       [].tap do |result|
-        if model.primary_key 
+        if model.primary_key
           to_remove -= [model.primary_key.to_s]  # if the table has a pk, don't remove it just b/c the fieldspec doesn't
           if !model_columns[model.primary_key.to_s] && !table_columns[model.primary_key.to_s]
             # model specifies a primary key that isn't the table and not defined in the fields.  Add it.

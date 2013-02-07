@@ -21,16 +21,27 @@ RSpec.configure do |config|
   config.order = "random"
 end
 
+
 # because we're using real models, AR complains if there's no open db connection
 ActiveRecord::Base.establish_connection :adapter => 'sqlite3', :database => ':memory:'
 
+
 def model name, &block
   @models ||= []
-  @models << Class.new(ActiveRecord::Base) do |m|
-    self.table_name = name.to_s
+  raise 'Duplicate #{name} definition' if Object.const_defined? name
+  model = Class.new(ActiveRecord::Base) do |m|
     m.class_eval(&block) if block
   end
+  @models << Object.const_set(name, model)
 end
+
+# delete any model classes when we're done
+RSpec.configure do |config|
+  config.after(:each) do
+    @models and @models.each { |model| Object.send :remove_const, model.name.to_sym }
+  end
+end
+
 
 # TODO: should support migration options: :id => false, :primary_key, etc
 def table name, &block

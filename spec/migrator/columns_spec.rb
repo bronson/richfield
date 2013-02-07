@@ -7,36 +7,40 @@ describe Richfield::Migrator do
   it "adds a type column when sti is used"   # when subclasses exist but they don't declare any fields
   it "handles fields declarations in sti subclasses"   # when subclasses declare fields
 
+
   it "adds a column to a truly empty table" do
-    model :truly_empty do
+    model 'Empty' do
       fields :id => false do |t|
         t.string :name, :default => "nope"
       end
     end
 
-    table :truly_empty do
+    table :empties do
     end
 
     test_migrator({
       change: [
-        { call: :add_column, table: 'truly_empty', name: 'name', type: :string, options: { default: "nope" } }
+        { call: :add_column, table: 'empties', name: 'name', type: :string, options: { default: "nope" } }
       ]} )
   end
 
+
   it "handles switching belongs_to ownership" do
-    model(:handlers) do
+    model 'Handler' do
       fields
       belongs_to :dog
     end
-    model(:dogs) do
+
+    model 'Dog' do
       fields
       has_many :handlers
     end
 
-    table(:handlers) do |t|
+    table :handlers do |t|
       t.primary_key :id
     end
-    table(:dogs) do |t|
+
+    table :dogs do |t|
       t.primary_key :id
       t.integer :handler_id
     end
@@ -48,15 +52,16 @@ describe Richfield::Migrator do
       ]} )
   end
 
+
   it "adds a polymorphic association" do
-    model(:comments) do
+    model 'Comment' do
       fields do |t|
         t.text :content
       end
       belongs_to :commentable, polymorphic: true
     end
 
-    table(:comments) do |t|
+    table :comments do |t|
       t.primary_key :id
       t.text :content
     end
@@ -69,13 +74,13 @@ describe Richfield::Migrator do
   end
 
   it "removes a polymorphic association" do
-    model(:comments) do
+    model 'Comment' do
       fields do |t|
         t.text :content
       end
     end
 
-    table(:comments) do |t|
+    table :comments do |t|
       t.primary_key :id
       t.text :content
       t.integer :commentable_id
@@ -89,15 +94,17 @@ describe Richfield::Migrator do
       ]} )
   end
 
-  it "adds a habtm table when just assoc is changed" do
-    model(:users) do
+
+  it "adds a habtm table when just assoc is changed", focus:true do
+    model 'User' do
       fields do |t|
         t.string :name
       end
+      # TODO: why doesn't this work?
       has_and_belongs_to_many :roles, foreign_key: 'user_id', association_foreign_key: 'role_id', join_table: 'roles_users'
     end
 
-    model(:roles) do
+    model 'Role' do
       fields
       has_and_belongs_to_many :users, foreign_key: 'role_id', association_foreign_key: 'user_id', join_table: 'roles_users'
     end
@@ -120,27 +127,28 @@ describe Richfield::Migrator do
       ]} )
   end
 
+
   it "removes a habtm table when just assoc is changed" do
-    model(:users) do
+    model 'User' do
       fields do |t|
         t.string :name
       end
     end
 
-    model(:roles) do
+    model 'Role' do
       fields
     end
 
-    table(:users) do |t|
+    table :users do |t|
       t.primary_key :id
       t.string :name
     end
 
-    table(:roles) do |t|
+    table :roles do |t|
       t.primary_key :id
     end
 
-    table(:roles_users) do |t|
+    table :roles_users do |t|
       t.integer :role_id
       t.integer :user_id
     end
@@ -150,79 +158,84 @@ describe Richfield::Migrator do
     })
   end
 
+
   it "changes a column from an integer to a string" do
-    model(:changing_table) do
+    model 'ChangingTable' do
       fields :id => false do |t|
         t.string :year
       end
     end
 
-    table(:changing_table) do |t|
+    table :changing_tables do |t|
       t.integer :year
     end
 
     test_migrator({
       change: [
-        { call: :change_column, table: "changing_table", name: "year", type: :string }
+        { call: :change_column, table: "changing_tables", name: "year", type: :string }
       ]} )
   end
 
+
   it "changes a column that's now :null => false" do
-    model(:non_null) do
+    model 'NonNull' do
       fields :id => false do |t|
         t.string :name, :null => false
       end
     end
 
-    table(:non_null) do |t|
+    table :non_nulls do |t|
       t.string :name
     end
 
     test_migrator({
       change: [
-        { call: :change_column, table: "non_null", name: "name", type: :string, options: { null: false }}
+        { call: :change_column, table: "non_nulls", name: "name", type: :string, options: { null: false }}
       ]} )
   end
 
+
   it "changes a column that's no longer :null => false" do
-    model(:nullable) do
+    model 'Nullable' do
       fields :id => false do |t|
         t.string :name  # null is default
       end
     end
 
-    table(:nullable) do |t|
+    table :nullables do |t|
       t.string :name, :null => false
     end
 
     test_migrator({
       change: [
-        { call: :change_column, table: "nullable", name: "name", type: :string }
+        { call: :change_column, table: "nullables", name: "name", type: :string }
       ]} )
   end
 
+
   it "ignores a model column that's :null => true" do
-    model(:nullable) do
+    model 'Nullable' do
       fields :id => false do |t|
         t.string :name, null: true
       end
     end
 
-    table(:nullable) do |t|
+    table :nullables do |t|
       t.string :name
     end
 
     test_migrator({})
   end
 
+
   it "ignores a table column that's :null => true" do
-    model(:nullable) do
+    model 'Nullable' do
       fields :id => false do |t|
         t.string :name
       end
     end
 
-    table(:nullable) do |t|
+    table :nullables do |t|
       t.string :name, null: true
     end
 

@@ -5,19 +5,24 @@ require File.expand_path("../../spec_helper", __FILE__)
 
 describe Richfield::Migrator do
   it "ignores models that don't declare fields" do
-    model(:ignored)
+    model 'Ignored'
     test_migrator({})
   end
 
+
   it "creates a table with no columns when no fields and no primary key" do
-    model(:truly_empty) { fields :id => false }
+    model 'TrulyEmpty' do
+      fields :id => false
+    end
+
     test_migrator(
-      { create: [{table_name: "truly_empty", options: {id: false}, columns: []} ]}
+      { create: [{table_name: "truly_empties", options: {id: false}, columns: []} ]}
     )
   end
 
+
   it "creates simple unrelated tables" do
-    model(:simple1) do
+    model 'FirstSimple' do
       fields do |t|
         t.string :first_name
         t.string :last_name, limit: 40
@@ -25,7 +30,7 @@ describe Richfield::Migrator do
       end
     end
 
-    model(:simple2) do
+    model 'SecondSimple' do
       fields primary_key: :i1 do |t|
         t.integer :i1, :i2, default: 0
         t.timestamps null: nil
@@ -34,14 +39,14 @@ describe Richfield::Migrator do
 
     test_migrator(
       { create: [
-        { table_name: "simple1", columns: [
+        { table_name: "first_simples", columns: [
           { name: "first_name", type: :string },
           { name: "last_name", type: :string, limit: 40 },
           { name: "created_at", type: :datetime, :null => false },
           { name: "updated_at", type: :datetime, :null => false }
         ]},
 
-        { table_name: "simple2", options: {primary_key: :i1}, columns: [
+        { table_name: "second_simples", options: {primary_key: :i1}, columns: [
           { name: "i1", type: :integer, default: 0 },
           { name: "i2", type: :integer, default: 0 },
           { name: "created_at", type: :datetime },
@@ -51,14 +56,15 @@ describe Richfield::Migrator do
     )
   end
 
+
   it "handles a simple belongs_to association with relations in fields" do
-    model(:handlers) do
+    model 'Handler' do
       fields do |t|
         has_many :dogs
       end
     end
 
-    model(:dogs) do
+    model 'Dog' do
       fields do |t|
         belongs_to :handler
       end
@@ -76,13 +82,14 @@ describe Richfield::Migrator do
     )
   end
 
+
   it "handles a simple belongs_to association with relations in models" do
-    model(:handlers) do
+    model 'Handler' do
       fields
       has_many :dogs
     end
 
-    model(:dogs) do
+    model 'Dog' do
       fields
       belongs_to :handler
     end
@@ -97,15 +104,16 @@ describe Richfield::Migrator do
     )
   end
 
+
   it "handles a polymorphic association" do
-    model(:comments) do
+    model 'Comment' do
       fields do |t|
         t.text :content
       end
       belongs_to :commentable, polymorphic: true
     end
 
-    model(:articles) do
+    model 'Article' do
       fields do |t|
         t.string :name
       end
@@ -127,8 +135,9 @@ describe Richfield::Migrator do
     )
   end
 
+
   it "creates a habtm table" do
-    model(:users) do   # TODO: model should be specified like AR class name: 'User'
+    model 'User' do   # TODO: model should be specified like AR class name: 'User'
       fields do |t|
         t.string :name
       end
@@ -137,7 +146,7 @@ describe Richfield::Migrator do
       has_and_belongs_to_many :roles, foreign_key: 'user_id', association_foreign_key: 'role_id', join_table: 'roles_users'
     end
 
-    model(:roles) do
+    model 'Role' do
       fields
       has_and_belongs_to_many :users, foreign_key: 'role_id', association_foreign_key: 'user_id', join_table: 'roles_users'
     end
@@ -158,8 +167,9 @@ describe Richfield::Migrator do
     )
   end
 
+
   it "handles a has_many through association" do
-    model(:physicians) do
+    model 'Physician' do
       fields do |t|
         t.string :name
       end
@@ -167,7 +177,7 @@ describe Richfield::Migrator do
       has_many :patients, through: :appointments
     end
 
-    model(:patients) do
+    model 'Patient' do
       fields do |t|
         t.string :name
       end
@@ -175,7 +185,7 @@ describe Richfield::Migrator do
       has_many :physicians, through: :appointments
     end
 
-    model(:appointments) do
+    model 'Appointment' do
       fields do |t|
         t.datetime :appointment_date
       end
@@ -202,16 +212,20 @@ describe Richfield::Migrator do
     )
   end
 
+
   it "creates an sti table"
+
 
   it "drops tables" do
     # no models
-    table('ravens') { |t|
+
+    table :ravens do |t|
       t.string :first
-    }
-    table('empties') { |t|
+    end
+
+    table :empties do |t|
       t.string :name
-    }
+    end
 
     test_migrator(
       { drop: [ 'empties', 'ravens' ]}

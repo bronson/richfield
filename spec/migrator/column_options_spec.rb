@@ -12,11 +12,13 @@ describe Richfield::Migrator do
     it "shows what happens if we apply it to other columns"
   end
 
+
   describe "precision and scale column options" do
     it "correctly applies to decimal columns"
     it "correctly assumes scale:0 is the same as no scale"
     it "shows what happens if we apply it to other columns"
   end
+
 
   describe "default column option" do
     it "correctly handles simple defaults"
@@ -27,69 +29,74 @@ describe Richfield::Migrator do
     # Date DateTime Time
   end
 
+
   describe "null column option" do
     it "changes a column that's now :null => false" do
-      model(:non_null) do
+      model 'NonNull' do
         fields :id => false do |t|
           t.string :name, :null => false
         end
       end
 
-      table(:non_null) do |t|
+      table :non_nulls do |t|
         t.string :name
       end
 
       test_migrator({
         change: [
-          { call: :change_column, table: "non_null", name: "name", type: :string, options: { null: false }}
+          { call: :change_column, table: "non_nulls", name: "name", type: :string, options: { null: false }}
         ]} )
     end
 
+
     it "changes a column that's no longer :null => false" do
-      model(:nullable) do
+      model 'Nullable' do
         fields :id => false do |t|
           t.string :name  # null is default
         end
       end
 
-      table(:nullable) do |t|
+      table :nullables do |t|
         t.string :name, :null => false
       end
 
       test_migrator({
         change: [
-          { call: :change_column, table: "nullable", name: "name", type: :string }
+          { call: :change_column, table: "nullables", name: "name", type: :string }
         ]} )
     end
 
+
     it "ignores a model column that's :null => true" do
-      model(:nullable) do
+      model 'Nullable' do
         fields :id => false do |t|
           t.string :name, null: true
         end
       end
 
-      table(:nullable) do |t|
+      table :nullables do |t|
         t.string :name
       end
 
       test_migrator({})
     end
 
+
     it "ignores a table column that's :null => true" do
-      model(:nullable) do
+      model 'Nullable' do
         fields :id => false do |t|
           t.string :name
         end
       end
 
-      table(:nullable) do |t|
+      table :nullables do |t|
         t.string :name, null: true
       end
 
       test_migrator({})
     end
   end
+
 
   it "shows what happens if we specify an option that doesn't exist"
   it "handles a mess of options all at once"
