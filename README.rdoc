@@ -1,4 +1,4 @@
 == Richfield
 
 A decreasingly brief experiment in making migrations write themselves.
-See Tom Locke and hobo_fields for the inspiration.
+Massive inspiration from Tom Locke and HoboFields.
