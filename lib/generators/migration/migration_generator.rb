@@ -1,5 +1,3 @@
-# can I set a limit on a polymorphic string or integer column?
-# should we put :null => false on keys defined by add_belongs_to_columns?
 # try to convert to command recorder
 # any chance of getting rid of richfield_table_options?
 # handle down properly
