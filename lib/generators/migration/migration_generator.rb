@@ -45,6 +45,7 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
     table_names = []
     table_names.concat(ActiveRecord::Base.connection.tables) if Richfield.config.inspect_tables != false
     table_names.concat(ActiveRecord::Base.connection.views) if Richfield.config.inspect_views != false && ActiveRecord::Base.connection.respond_to?(:views)
+    table_names = table_names.grep(Regexp.new Richfield.config.table_matcher) if Richfield.config.table_matcher
     tables = table_names.map { |table|
       Richfield::TableDefinition.new(table, nil, ActiveRecord::Base.connection.columns(table))
     }
