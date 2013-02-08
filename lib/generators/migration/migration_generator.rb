@@ -1,12 +1,15 @@
+# definitely add logging with configurable verbosity
+# how does AR ignore tables?  can we do the same thing?
 # try to convert to command recorder
+# handle down properly (probably means extending commandrecorder)
 # any chance of getting rid of richfield_table_options?
-# handle down properly
 # rename_table rename_column
 # add_timestamps, remove_timestamps
 # add_index, remove_index, rename_index, work with https://github.com/lomba/schema_plus
 # change_column_null?
 
 # TO TEST:
+# - setup (re-enable test) and schema formatter
 # - renames tables if possible
 # - renames columns if possible
 # - sti

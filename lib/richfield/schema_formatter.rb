@@ -39,7 +39,7 @@ module Richfield
       elsif option == :name
         value.inspect + ','
       else
-        value = Richfield::Migrator.option_filter(column, option)
+        value = Richfield::ColumnOptions.option_filter(column, option)
         !value.nil? ? "#{option.inspect.gsub(/^{|}$/, '')} => #{value.inspect}," : ''
       end
     end
