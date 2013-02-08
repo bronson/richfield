@@ -3,7 +3,7 @@
 # handle down properly
 # rename_table rename_column
 # add_timestamps, remove_timestamps
-# add_index, remove_index, rename_index
+# add_index, remove_index, rename_index, work with https://github.com/lomba/schema_plus
 # change_column_null?
 
 # TO TEST:

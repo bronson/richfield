@@ -17,7 +17,7 @@ module Richfield
 
     def initialize indent
       @indent = indent
-      @table_options = [':force => true']
+      @table_options = { force: true }
     end
 
     def tables tbls
