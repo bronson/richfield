@@ -40,7 +40,14 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
     }
 
     @migration = Richfield::Migrator.new(models,tables).generate
-    super(*args)
+    if file_name == 'show'
+      # special case to show the migration instead of saving it
+      # TODO 'show' sucks, any way to pass a magic value like '-'?
+      source  = File.expand_path(find_in_source_paths('migration.rb'))
+      puts ERB.new(File.binread(source), nil, '-', '@output_buffer').result(instance_eval('binding'))
+    else
+      super(*args)
+    end
   end
 
   protected
