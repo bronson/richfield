@@ -26,8 +26,8 @@ module Richfield
       desired_tables = {}.merge(model_tables).merge(habtm_tables)
       existing_tables = @tables.index_by(&:table_name)
 
-      create_names = desired_tables.keys - existing_tables.keys - Richfield.config.ignore_tables
-      drop_names = existing_tables.keys - desired_tables.keys - Richfield.config.ignore_tables
+      create_names = desired_tables.keys - existing_tables.keys
+      drop_names = existing_tables.keys - desired_tables.keys
       change_names = desired_tables.keys - create_names - drop_names
 
       create_tables = create_names.sort.map { |name| desired_tables[name] }

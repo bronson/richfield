@@ -10,7 +10,8 @@ describe Richfield::Migrator do
   end
 
 
-  it "ignores tables that are ignored" do
+  it "ignores tables that are ignored", focus:true do
+    pending "mocking tables and models, then testing the generator itself"
     Richfield.config.ignore_tables << 'ignore_me'
     table :ignore_me
     test_migrator({})
