@@ -1,3 +1,4 @@
+require 'richfield/configuration'
 require 'richfield/schema_formatter'
 require 'active_support/core_ext/hash/diff'
 
@@ -19,15 +20,14 @@ module Richfield
     def initialize models, tables
       @models = models
       @tables = tables
-      @ignore_names = %w[schema_migrations]  # TODO: see hobo_fields always_ignore_tables to ignore CGI sessions table?
     end
 
     def generate
       desired_tables = {}.merge(model_tables).merge(habtm_tables)
       existing_tables = @tables.index_by(&:table_name)
 
-      create_names = desired_tables.keys - existing_tables.keys - @ignore_names
-      drop_names = existing_tables.keys - desired_tables.keys - @ignore_names
+      create_names = desired_tables.keys - existing_tables.keys - Richfield.config.ignore_tables
+      drop_names = existing_tables.keys - desired_tables.keys - Richfield.config.ignore_tables
       change_names = desired_tables.keys - create_names - drop_names
 
       create_tables = create_names.sort.map { |name| desired_tables[name] }

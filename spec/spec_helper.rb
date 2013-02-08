@@ -39,6 +39,7 @@ RSpec.configure do |config|
   config.after(:each) do
     @models and @models.each { |model| Object.send :remove_const, model.name.to_sym }
   end
+  Richfield.reset_config
 end
 
 

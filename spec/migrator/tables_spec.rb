@@ -10,6 +10,13 @@ describe Richfield::Migrator do
   end
 
 
+  it "ignores tables that are ignored" do
+    Richfield.config.ignore_tables << 'ignore_me'
+    table :ignore_me
+    test_migrator({})
+  end
+
+
   it "creates a table with no columns when no fields and no primary key" do
     model 'TrulyEmpty' do
       fields :id => false
