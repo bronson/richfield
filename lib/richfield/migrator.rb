@@ -4,10 +4,10 @@ require 'active_support/core_ext/hash/diff'
 module Richfield
   # Just enough model to keep track of a table definiton.  It's probably
   # time to turn this into a full blown class.
-  TableDefinition = Struct.new(:table_name, :options, :columns) do
+  TableDefinition = Struct.new(:table_name, :richfield_table_options, :columns) do
     def primary_key
-      return nil if options[:id] == false
-      options[:primary_key] || 'id'
+      return nil if richfield_table_options[:id] == false
+      richfield_table_options[:primary_key] || 'id'
     end
 
     def connection
@@ -45,7 +45,8 @@ module Richfield
           # create an identical table definition where columns contains the desired columns, not the actual ones
           raise "richfield's ar extension wasn't loaded" unless model.respond_to? :richfield_definition
           unless model.richfield_definition(false).nil?
-            table_definition = TableDefinition.new(model.table_name, model.richfield_table_options || {}, model.richfield_definition.columns)
+            columns = add_belongs_to_columns(model, model.richfield_definition.columns)
+            table_definition = TableDefinition.new(model.table_name, model.richfield_table_options || {}, columns)
             result.merge! model.table_name => table_definition
           end
         end
@@ -66,6 +67,22 @@ module Richfield
         mh.merge! model.reflect_on_all_associations(:has_and_belongs_to_many).inject({}) { |ah,association|
           ah.merge! define_join_table(association)
         }
+      end
+    end
+
+    def add_belongs_to_columns model, columns
+      # merges any columns that we need to guess in with existing columns
+      [].tap do |result|
+        result.concat columns
+        names = result.inject({}) { |h,col| h.merge! col.name => true }
+        model.reflect_on_all_associations(:belongs_to).each do |association|
+          if names[association.foreign_key].nil?
+            result << ActiveRecord::ConnectionAdapters::ColumnDefinition.new(model.connection, association.foreign_key, :integer)
+          end
+          if association.options[:polymorphic] && names[association.foreign_type].nil?
+            result << ActiveRecord::ConnectionAdapters::ColumnDefinition.new(model.connection, association.foreign_type, :string)
+          end
+        end
       end
     end
 
@@ -161,7 +178,7 @@ module Richfield
           columns = table.columns.map { |column|
             Richfield::ColumnOptions.extract_options(column, true)
           }
-          result[:create] << { table_name: table.table_name, options: table.options, columns: columns }.delete_if { |k,v| k == :options && v.empty? }
+          result[:create] << { table_name: table.table_name, options: table.richfield_table_options, columns: columns }.delete_if { |k,v| k == :options && v.empty? }
         end
         result[:drop] = @drop_tables if @drop_tables.present?
         result[:change] = @change_tables if @change_tables.present?

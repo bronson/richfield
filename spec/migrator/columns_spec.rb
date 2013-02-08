@@ -21,7 +21,7 @@ describe Richfield::Migrator do
     test_migrator({
       change: [
         { call: :add_column, table: 'empties', name: 'name', type: :string, options: { default: "nope" } }
-      ]} )
+      ]})
   end
 
 
@@ -49,9 +49,25 @@ describe Richfield::Migrator do
       change: [
         { call: :remove_column, table: "dogs",     name: "handler_id" },
         { call: :add_column,    table: "handlers", name: "dog_id", type: :integer }
-      ]} )
+      ]})
   end
 
+
+  it "handles a reflexive association" do
+    model 'Sector' do
+      fields
+      belongs_to :parent_assoc, :class_name => 'Sector', :foreign_key => 'parent_id'
+    end
+
+    table 'sectors' do |t|
+      t.primary_key :id
+    end
+
+    test_migrator({
+      change: [
+        { call: :add_column, table: "sectors", name: "parent_id", type: :integer }
+      ]})
+  end
 
   it "adds a polymorphic association" do
     model 'Comment' do
@@ -70,8 +86,9 @@ describe Richfield::Migrator do
       change: [
         { call: :add_column, table: "comments", name: "commentable_id", type: :integer},
         { call: :add_column, table: "comments", name: "commentable_type", type: :string }
-      ]} )
+      ]})
   end
+
 
   it "removes a polymorphic association" do
     model 'Comment' do
@@ -91,7 +108,7 @@ describe Richfield::Migrator do
       change: [
         { call: :remove_column, table: "comments", name: "commentable_id" },
         { call: :remove_column, table: "comments", name: "commentable_type" }
-      ]} )
+      ]})
   end
 
 
@@ -124,7 +141,7 @@ describe Richfield::Migrator do
           { name: "role_id", type: :integer },
           { name: "user_id", type: :integer }
         ]}
-      ]} )
+      ]})
   end
 
 
@@ -173,7 +190,7 @@ describe Richfield::Migrator do
     test_migrator({
       change: [
         { call: :change_column, table: "changing_tables", name: "year", type: :string }
-      ]} )
+      ]})
   end
 
 
@@ -191,7 +208,7 @@ describe Richfield::Migrator do
     test_migrator({
       change: [
         { call: :change_column, table: "non_nulls", name: "name", type: :string, options: { null: false }}
-      ]} )
+      ]})
   end
 
 
@@ -209,7 +226,7 @@ describe Richfield::Migrator do
     test_migrator({
       change: [
         { call: :change_column, table: "nullables", name: "name", type: :string }
-      ]} )
+      ]})
   end
 
 

@@ -1,6 +1,6 @@
-# fix :limit => 255
-# try to convert table definition
+# can I set a limit on a polymorphic string or integer column?
 # try to convert to command recorder
+# any chance of getting rid of richfield_table_options?
 # handle down properly
 # rename_table rename_column
 # add_timestamps, remove_timestamps
@@ -11,15 +11,23 @@
 # - renames tables if possible
 # - renames columns if possible
 # - sti
+# - counter caches?
+# - sti+polymorphic: http://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html#label-Polymorphic+Associations
+# - can supply a default name for migration
+# - make sure we work with config.active_record.timestamped_migrations = false
+
+# full stack tests:
 # - a hideously complex schema with matching tables produces no migration
 # - won't run if there are pending migrations
 # - prints "models and schema match -- nothing to do"
 # - names migration if name isn't supplied.  (probably a bunch of tests: add field, remove field, rename field, rename table, etc)
 # - automatically add a fields block when generating models (crib from model_injection.rb and model_generator.rb)
 # - prevents model generator from generating a blank migration
-# - make sure we work with config.active_record.timestamped_migrations = false
-# - should probably make fields opt-out instead of opt-in since lots of valid models don't have fields.  fields false?
 # - make sure generator USAGE docs are correct
+
+# thoughts:
+# - should probably make fields opt-out instead of opt-in since lots of valid models don't have fields.  fields false?
+# - no need to support composed_of relations: https://github.com/rails/rails/pull/6743
 
 require 'rails/generators/active_record/migration/migration_generator'
 require 'richfield/migrator'

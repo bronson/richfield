@@ -25,7 +25,7 @@ module Richfield
     end
 
     def table tbl
-      options = tbl.options.merge(@table_options)
+      options = tbl.richfield_table_options.merge(@table_options)
       options_str = options.present? ? options.inspect+" " : ""
       "#{indent}create_table :#{tbl.table_name}, #{options_str}do |t|\n#{columns tbl.columns}#{indent}end\n"
     end
