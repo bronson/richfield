@@ -1,8 +1,9 @@
 Description:
-    Explain the generator
+    Add a fields clause to your models, then the migration generator.
+    See http://github.com/bronson/richfield for more.
 
 Example:
-    rails generate migration Thing
+    rails generate migration Name
 
     This will create:
-        what/will/it/create
+        db/migration/Date-Name.rb
