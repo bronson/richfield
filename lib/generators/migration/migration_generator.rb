@@ -42,9 +42,10 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
 
     Rails.application.eager_load!
     models = ActiveRecord::Base.descendants.select { |m| m.respond_to? :fields }
-    tables = [].concat(ActiveRecord::Base.connection.tables)
-    tables.concat(ActiveRecord::Base.connection.views) if ActiveRecord::Base.connection.respond_to? :views
-    tables.map { |table|
+    table_names = []
+    table_names.concat(ActiveRecord::Base.connection.tables) if Richfield.config.inspect_tables != false
+    table_names.concat(ActiveRecord::Base.connection.views) if Richfield.config.inspect_views != false && ActiveRecord::Base.connection.respond_to?(:views)
+    tables = table_names.map { |table|
       Richfield::TableDefinition.new(table, nil, ActiveRecord::Base.connection.columns(table))
     }
 
