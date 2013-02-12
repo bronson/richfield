@@ -32,7 +32,7 @@ module Richfield
 
     # formats the named value for display
     def format_value column, option
-      value = column[option]
+      value = column.send(option)
 
       if option == :type
         "t." + value.to_s
@@ -58,12 +58,12 @@ module Richfield
 
   module ColumnOptions
     OptionalKeys = [:limit, :precision, :scale, :default, :null]
-    ArgumentKeys = [:name, :type].concat(OptionalKeys)
+    ArgumentKeys = [:type, :name].concat(OptionalKeys)
 
     # returns options as passed to add_column in the proper order
     def self.argument_keys columns
       all_keys = columns.map { |column|
-        column.members.reject { |option| option_filter(column, option).nil? }
+        ArgumentKeys.reject { |option| option_filter(column, option).nil? }
       }.flatten
       ArgumentKeys & all_keys # trim to known keys and order for display
     end

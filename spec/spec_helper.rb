@@ -24,16 +24,6 @@ end
 # because we're using real models, AR complains if there's no open db connection
 ActiveRecord::Base.establish_connection :adapter => 'sqlite3', :database => ':memory:'
 
-
-def model name, &block
-  @models ||= []
-  raise 'Duplicate #{name} definition' if Object.const_defined? name
-  model = Class.new(ActiveRecord::Base) do |m|
-    m.class_eval(&block) if block
-  end
-  @models << Object.const_set(name, model)
-end
-
 # delete any model classes when we're done
 RSpec.configure do |config|
   config.after(:each) do
@@ -43,18 +33,35 @@ RSpec.configure do |config|
 end
 
 
-# TODO: should support migration options: :id => false, :primary_key, etc
-def table name, &block
+def model name, &block
+  @models ||= []
+  raise 'Duplicate #{name} definition' if Object.const_defined? name
+
+  model = Class.new(ActiveRecord::Base) do |m|
+    m.class_eval(&block) if block
+  end
+
+  result = Object.const_set(name, model)
+  @models << result
+  result
+end
+
+
+def table name, options={}, &block
   @tables ||= []
   td = ActiveRecord::ConnectionAdapters::TableDefinition.new(ActiveRecord::Base.connection)
   block.call td if block
 
-  # Convert AR::CA::ColumnDefinition to actual AR::CA::Column objects
+  # Convert the AR::CA::ColumnDefinitions to actual AR::CA::Column objects
   columns = td.columns.map { |column|
     ActiveRecord::ConnectionAdapters::Column.new(column.name, column.default, column.to_sql, column.null)
   }
-  @tables << Richfield::TableDefinition.new(name.to_s, 'id', columns)
+
+  result = Richfield::TableDefinition.new(name.to_s, options, columns)
+  @tables << result
+  result
 end
+
 
 def test_migrator result
   output = Richfield::Migrator.new(@models||[], @tables||[]).generate

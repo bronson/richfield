@@ -1,3 +1,7 @@
+# add logging, default to 1.  0: nothing at all 1: warnings 1: name each table before accessing, 2: show list of models and tables, 3: show columns, 4: show column diffs
+# wait, why do I need to specify primary key in the fields block AND on the model?
+# also, why do I need id:false on the fields decl if model.primary_key is false or nil?
+# add an alias: shortcut to the fields declaration for alias_attribute
 # definitely add logging with configurable verbosity
 # how does AR ignore tables?  can we do the same thing?
 # try to convert to command recorder
