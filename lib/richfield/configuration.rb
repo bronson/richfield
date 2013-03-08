@@ -5,7 +5,9 @@ module Richfield
 
   def self.reset_config
     Richfield.config.keys.each { |k| Richfield.config.delete k }
-    Richfield.config.ignore_tables = %w[schema_migrations]  # TODO: see hobo_fields always_ignore_tables to ignore CGI sessions table?
+
+    Richfield.config.ignore_tables = %w[schema_migrations]
+    Richfield.config.check_for_pending_migrations = true
   end
 end
 
