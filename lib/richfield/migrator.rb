@@ -77,10 +77,10 @@ module Richfield
         names = result.inject({}) { |h,col| h.merge! col.name => true }
         model.reflect_on_all_associations(:belongs_to).each do |association|
           if names[association.foreign_key].nil?
-            result << ActiveRecord::ConnectionAdapters::ColumnDefinition.new(model.connection, association.foreign_key, :integer)
+            result << Richfield::Compatibility.create_column_definition(model.connection, association.foreign_key, :integer)
           end
           if association.options[:polymorphic] && names[association.foreign_type].nil?
-            result << ActiveRecord::ConnectionAdapters::ColumnDefinition.new(model.connection, association.foreign_type, :string)
+            result << Richfield::Compatibility.create_column_definition(model.connection, association.foreign_type, :string)
           end
         end
       end
