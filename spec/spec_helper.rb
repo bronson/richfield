@@ -38,11 +38,9 @@ def model name, &block
   @models ||= []
   raise 'Duplicate #{name} definition' if Object.const_defined? name
 
-  model = Class.new(ActiveRecord::Base) do |m|
-    m.class_eval(&block) if block
-  end
-
+  model = Class.new(ActiveRecord::Base)
   result = Object.const_set(name, model)
+  model.class_eval(&block) if block
   @models << result
   result
 end

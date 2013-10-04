@@ -230,6 +230,7 @@ describe Richfield::Migrator do
   end
 
 
+  # TODO: shouldn't nullability match?
   it "ignores a model column that's :null => true" do
     model 'Nullable' do
       fields :id => false do |t|
@@ -245,6 +246,7 @@ describe Richfield::Migrator do
   end
 
 
+  # TODO: shouldn't nullability match?
   it "ignores a table column that's :null => true" do
     model 'Nullable' do
       fields :id => false do |t|

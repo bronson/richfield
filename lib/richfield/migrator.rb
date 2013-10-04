@@ -4,7 +4,7 @@ require 'active_support/core_ext/hash/diff'
 
 module Richfield
   # Just enough model to keep track of a table definiton.  It's probably
-  # time to turn this into a full blown class.  (so why can't we use AR:CA::TableDefinition?)
+  # time to turn this into a full blown class.  (TODO: so why can't we use AR:CA::TableDefinition?)
   TableDefinition = Struct.new(:table_name, :richfield_table_options, :columns) do
     def primary_key
       return nil if richfield_table_options[:id] == false
