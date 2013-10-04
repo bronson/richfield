@@ -33,6 +33,7 @@ RSpec.configure do |config|
 end
 
 
+# creates a fake model
 def model name, &block
   @models ||= []
   raise 'Duplicate #{name} definition' if Object.const_defined? name
@@ -47,14 +48,16 @@ def model name, &block
 end
 
 
-def table name, options={}, &block
+# creates a fake table
+def table name, options={}
   @tables ||= []
-  td = ActiveRecord::ConnectionAdapters::TableDefinition.new(ActiveRecord::Base.connection)
-  block.call td if block
+  tabledef = Richfield::Compatibility.create_table_definition(ActiveRecord::Base.connection, name, options)
+  yield(tabledef) if block_given?
 
-  # Convert the AR::CA::ColumnDefinitions to actual AR::CA::Column objects
-  columns = td.columns.map { |column|
-    ActiveRecord::ConnectionAdapters::Column.new(column.name, column.default, column.to_sql, column.null)
+  # Convert the AR::CA::ColumnDefinitions to actual AR::CA::Column objects to match real life
+  columns = tabledef.columns.map { |column|
+    sql = Richfield::Compatibility.column_to_sql(ActiveRecord::Base.connection, column)
+    ActiveRecord::ConnectionAdapters::Column.new(column.name, column.default, sql, column.null)
   }
 
   result = Richfield::TableDefinition.new(name.to_s, options, columns)

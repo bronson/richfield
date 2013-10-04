@@ -4,7 +4,7 @@ require 'active_support/core_ext/hash/diff'
 
 module Richfield
   # Just enough model to keep track of a table definiton.  It's probably
-  # time to turn this into a full blown class.
+  # time to turn this into a full blown class.  (so why can't we use AR:CA::TableDefinition?)
   TableDefinition = Struct.new(:table_name, :richfield_table_options, :columns) do
     def primary_key
       return nil if richfield_table_options[:id] == false
@@ -43,7 +43,7 @@ module Richfield
       {}.tap do |result|
         @models.each do |model|
           # create an identical table definition where columns contains the desired columns, not the actual ones
-          raise "richfield's ar extension wasn't loaded" unless model.respond_to? :richfield_definition
+          raise "richfield's ActiveRecord extension wasn't loaded" unless model.respond_to? :richfield_definition
           unless model.richfield_definition(false).nil?
             columns = add_belongs_to_columns(model, model.richfield_definition.columns)
             table_definition = TableDefinition.new(model.table_name, model.richfield_table_options || {}, columns)
