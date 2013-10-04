@@ -34,14 +34,14 @@ describe Richfield::Migrator do
       fields do |t|
         t.string :first_name
         t.string :last_name, limit: 40
-        t.timestamps
+        t.timestamps null: false
       end
     end
 
     model 'SecondSimple' do
       fields primary_key: :i1 do |t|
         t.integer :i1, :i2, default: 0
-        t.timestamps null: nil
+        t.timestamps
       end
     end
 
