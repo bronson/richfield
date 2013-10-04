@@ -34,14 +34,14 @@ describe Richfield::Migrator do
       fields do |t|
         t.string :first_name
         t.string :last_name, limit: 40
-        t.timestamps null: false
+        t.timestamps null: false   # specify nullability since AR3 and AR4 defaults are different
       end
     end
 
     model 'SecondSimple' do
       fields primary_key: :i1 do |t|
         t.integer :i1, :i2, default: 0
-        t.timestamps
+        t.timestamps null: true   # specify nullability since AR3 and AR4 defaults are different
       end
     end
 
@@ -59,6 +59,26 @@ describe Richfield::Migrator do
           { name: "i2", type: :integer, default: 0 },
           { name: "created_at", type: :datetime },
           { name: "updated_at", type: :datetime }
+        ]}
+      ]}
+    )
+  end
+
+
+  it "handles multiple fields declarations in a single model" do
+    model 'MultiModal' do
+      fields { |t| t.string :first_name }
+      # table options should all be merged together
+      fields(id: false) { |t| t.string :last_name, limit: 40 }
+      fields { |t| t.integer :age }
+    end
+
+    test_migrator(
+      { create: [
+        { table_name: "multi_modals", options: {id: false}, columns: [
+          { name: "first_name", type: :string },
+          { name: "last_name", type: :string, limit: 40 },
+          { name: "age", type: :integer }
         ]}
       ]}
     )

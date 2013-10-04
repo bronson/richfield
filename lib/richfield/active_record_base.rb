@@ -12,7 +12,8 @@ module Richfield
 
       def fields options={}
         cols = richfield_definition
-        @richfield_table_options = options
+        @richfield_table_options ||= {}
+        @richfield_table_options.merge!(options)
         yield cols if block_given?
       end
     end
