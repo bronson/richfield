@@ -111,7 +111,8 @@ module Richfield
           to_remove -= [model.primary_key.to_s]  # if the table has a pk, don't remove it just b/c the fieldspec doesn't
           if !model_columns[model.primary_key.to_s] && !table_columns[model.primary_key.to_s]
             # model specifies a primary key that isn't the table and not defined in the fields.  Add it.
-            result << create_change(:add_column, model, ActiveRecord::ConnectionAdapters::ColumnDefinition.new(model.connection, model.primary_key, :primary_key))
+            column = Richfield::Compatibility.create_column_definition(model.connection, model.primary_key, :primary_key)
+            result << create_change(:add_column, model, column)
           end
         end
 
@@ -126,6 +127,7 @@ module Richfield
             result << create_change(:change_column, model, model_columns[column])
           end
         end
+
         to_remove.each { |col| result << { call: :remove_column, table: model.table_name, name: col } }
       end
     end

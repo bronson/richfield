@@ -20,7 +20,8 @@ module Richfield
 
   # this module papers over api changes between AR3 and AR4
   module Compatibility
-   def self.create_table_definition connection, name, options={}
+    # AR4 changed TableDefinition's arguments: https://github.com/rails/rails/commit/14d7dc0811fc946ffb63ceed7e0389ed14b50800
+    def self.create_table_definition connection, name, options={}
       if ActiveRecord::ConnectionAdapters::TableDefinition.instance_method(:initialize).arity < 4
         ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) # AR3
       else
