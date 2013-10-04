@@ -55,7 +55,7 @@ module Richfield
 
     def define_join_table association
       table_name = association.options[:join_table]
-      table = ActiveRecord::ConnectionAdapters::TableDefinition.new(association.active_record.connection)
+      table = Richfield::Compatibility.create_table_definition(association.active_record.connection, table_name)
       [association.foreign_key.to_s, association.association_foreign_key.to_s].sort.each { |aname| table.column(aname, :integer) }
       { table_name => TableDefinition.new(table_name, { id: false }, table.columns) }
     end

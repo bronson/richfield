@@ -7,7 +7,7 @@ module Richfield
 
       def richfield_definition vivify=true
         # todo: gotta be a better API than this vivify stuff
-        @richfield_definiton ||= (vivify ? Richfield::Compatibility.create_table_definition(connection, table_name, {}) : nil)
+        @richfield_definiton ||= (vivify ? Richfield::Compatibility.create_table_definition(connection, table_name) : nil)
       end
 
       def fields options={}
@@ -20,7 +20,7 @@ module Richfield
 
   # this module papers over api changes between AR3 and AR4
   module Compatibility
-   def self.create_table_definition connection, name, options
+   def self.create_table_definition connection, name, options={}
       if ActiveRecord::ConnectionAdapters::TableDefinition.instance_method(:initialize).arity < 4
         ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) # AR3
       else
