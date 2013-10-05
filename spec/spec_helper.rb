@@ -53,10 +53,10 @@ def table name, options={}
   yield(tabledef) if block_given?
 
   # Convert the AR::CA::ColumnDefinitions to actual AR::CA::Column objects to match real life
-  columns = tabledef.columns.map { |column|
+  columns = tabledef.columns.map do |column|
     sql = Richfield::Compatibility.column_to_sql(ActiveRecord::Base.connection, column)
     ActiveRecord::ConnectionAdapters::Column.new(column.name, column.default, sql, column.null)
-  }
+  end
 
   result = Richfield::TableDefinition.new(name.to_s, options, columns)
   @tables << result
