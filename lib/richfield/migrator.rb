@@ -43,9 +43,9 @@ module Richfield
       {}.tap do |result|
         @models.each do |model|
           # create an identical table definition where columns contains the desired columns, not the actual ones
-          raise "richfield's ActiveRecord extension wasn't loaded" unless model.respond_to? :richfield_definition
-          unless model.richfield_definition(false).nil?
-            columns = add_belongs_to_columns(model, model.richfield_definition.columns)
+          raise "richfield's ActiveRecord extension wasn't loaded" unless model.respond_to? :richfield_fields
+          if model.richfield_fields
+            columns = add_belongs_to_columns(model, model.richfield_fields_create.columns)
             table_definition = TableDefinition.new(model.table_name, model.richfield_table_options || {}, columns)
             result.merge! model.table_name => table_definition
           end

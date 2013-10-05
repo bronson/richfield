@@ -3,15 +3,16 @@ module Richfield
     extend ActiveSupport::Concern
 
     module ClassMethods
+      attr_reader :richfield_fields
       attr_reader :richfield_table_options
 
-      def richfield_definition vivify=true
-        # todo: gotta be a better API than this vivify stuff
-        @richfield_definiton ||= (vivify ? Richfield::Compatibility.create_table_definition(connection, table_name) : nil)
+      # creates the field definitons if they haven't been created yet
+      def richfield_fields_create
+        @richfield_fields ||= Richfield::Compatibility.create_table_definition(connection, table_name)
       end
 
       def fields options={}
-        cols = richfield_definition
+        cols = richfield_fields_create
         @richfield_table_options ||= {}
         @richfield_table_options.merge!(options)
         yield cols if block_given?
