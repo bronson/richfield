@@ -46,7 +46,7 @@ module Richfield
           raise "richfield's ActiveRecord extension wasn't loaded" unless model.respond_to? :richfield_fields
           if model.richfield_fields
             columns = add_belongs_to_columns(model, model.richfield_fields_create.columns)
-            table_definition = TableDefinition.new(model.table_name, model.richfield_table_options || {}, columns)
+            table_definition = TableDefinition.new(model.table_name, model.richfield_fields.options, columns)
             result.merge! model.table_name => table_definition
           end
         end

@@ -34,15 +34,15 @@ end
 
 
 # creates a fake model
-def model name, &block
+def model name, parent=ActiveRecord::Base, &block
   @models ||= []
   raise 'Duplicate #{name} definition' if Object.const_defined? name
 
-  model = Class.new(ActiveRecord::Base)
-  result = Object.const_set(name, model)
+  model = Class.new(parent)
+  @models << model
+  Object.const_set(name, model)
   model.class_eval(&block) if block
-  @models << result
-  result
+  model
 end
 
 
