@@ -37,5 +37,53 @@ describe Richfield::Migrator do
     )
   end
 
-  it "detects sti conflicts"
+
+  # doh, the proper way to implement this is to add the
+  # functionality to AR::CA::TableDefinition.  On hold for now.
+
+  # it "detects base-child sti conflicts" do
+  #   model 'Asset' do
+  #     fields do |t|
+  #       t.string :name
+  #       t.integer :price
+  #     end
+  #   end
+
+  #   model 'Property', Asset do
+  #     fields do |t|
+  #       t.integer :price   # conflicts with Asset.price
+  #     end
+  #   end
+
+  #   model 'Land', Asset do
+  #     fields do |t|
+  #       t.integer :easements
+  #     end
+  #   end
+
+  #   expect { test_migrator }.to raise_error(NameError)
+  # end
+
+
+  # it "detects child-child sti conflicts" do
+  #   model 'Asset' do
+  #     fields do |t|
+  #       t.string :name
+  #     end
+  #   end
+
+  #   model 'Property', Asset do
+  #     fields do |t|
+  #       t.integer :price
+  #     end
+  #   end
+
+  #   model 'Land', Asset do
+  #     fields do |t|
+  #       t.integer :price   # conflicts with Property.price
+  #     end
+  #   end
+
+  #   expect { test_migrator }.to raise_error(NameError)
+  # end
 end

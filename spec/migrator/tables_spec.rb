@@ -71,7 +71,7 @@ describe Richfield::Migrator do
   it "handles multiple fields declarations in a single model" do
     model 'MultiModal' do
       fields { |t| t.string :first_name }
-      # table options should all be merged together
+      # ensure table options are merged too
       fields(id: false) { |t| t.string :last_name, limit: 40 }
       fields { |t| t.integer :age }
     end
