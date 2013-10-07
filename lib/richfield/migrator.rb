@@ -100,7 +100,6 @@ module Richfield
       if model.richfield_fields.using_sti? && model.superclass == ActiveRecord::Base
         names = hash_of_names(columns)
         if names[model.inheritance_column.to_s].nil?
-          puts "#{model.inheritance_column.to_s} : #{names}"
           column = Richfield::Compatibility.create_column_definition(model.connection, model.inheritance_column, :string)
           column.null = false
           columns << column
