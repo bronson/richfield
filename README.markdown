@@ -5,6 +5,22 @@ Massive inspiration from Tom Locke and HoboFields.
 
 [![Build Status](https://api.travis-ci.org/bronson/richfield.png?branch=master)](http://travis-ci.org/bronson/richfield)
 
+
+## TODO
+
+Before this gem is ready for prime time:
+
+- get rid of Richfield::TableDefinition
+- don't ignore existing migration syntax.  if I specify some options on the command line, they should be added to the generated migration.
+- implement pending specs
+- be smart about renaming fields and tables instead of adding/dropping
+- try to fix todos
+- document document document!
+- add code to guess the name of the migration?
+- release 1.0
+- submit patch so Richfield::SchemaFormatter can take over from the more limited AR::SchemaDumper
+
+
 ## Droppings
 
 Q: Can I set custom options on relations columns?  For example, `belongs_to :user, default: 12`
@@ -18,6 +34,7 @@ it however you'd like in your fields statement.  Richfield won't override you.
         t.integer :user_id, default: 1
       end
     end
+
 
 ## License
 
