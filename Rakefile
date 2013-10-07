@@ -18,6 +18,13 @@ task :spec => ['spec4', 'spec3']
 task :default => ['spec']
 task :test => ['spec']
 
+
+task :console do
+  chdir File.dirname(__FILE__)
+  exec 'irb -I lib/ -r richfield'
+end
+
+
 task :build  do
   system 'gem build richfield.gemspec'
 end
