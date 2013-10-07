@@ -3,3 +3,6 @@ rvm:
   - 2.0.0
   # If a single person wants jruby, rubinious, or ree, I'll add it. Just file an issue.
 script: 'bundle exec rspec'
+gemfile:
+  - Gemfile
+  - Gemfile-AR3

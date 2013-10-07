@@ -1,0 +1,11 @@
+# Ensure we still work with Rails 3 / ActiveRecord 3
+
+source 'https://rubygems.org'
+
+gem 'activerecord', '~>3.2'
+
+group :test do
+  gem "rspec"
+  # gem "generator_spec"
+  gem 'sqlite3'
+end

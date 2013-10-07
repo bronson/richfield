@@ -1,5 +1,7 @@
 require 'active_record'
 
+puts "Testing against ActiveRecord #{ActiveRecord::VERSION::STRING}"
+
 $:.unshift File.expand_path("../../lib", __FILE__)
 require 'richfield/migrator'
 require 'richfield/active_record_base'
