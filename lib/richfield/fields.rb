@@ -11,10 +11,20 @@ module Richfield
     def initialize(connection, table_name)
       @definition = Richfield::Compatibility.create_table_definition(connection, table_name)
       @options = {}
+      @sti = false
     end
 
     def columns
       @definition.columns
+    end
+
+    # invoked when a fields block gets used in a subclass
+    def using_sti!
+      @sti = true
+    end
+
+    def using_sti?
+      @sti
     end
   end
 end

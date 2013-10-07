@@ -24,25 +24,33 @@ module Richfield
                 superclass._richfield_fields
               end
             end
+            @_richfield_fields_defined = :child
+            _richfield_fields.using_sti!
           else
             class << self
               def _richfield_fields
                 @_richfield_fields ||= Richfield::Fields.new(connection, table_name)
               end
             end
+            @_richfield_fields_defined = :base
           end
         end
-
-        # mark this class as having received the correct method
-        @_richfield_fields_defined = true
 
         _richfield_fields
       end
 
+      # true if this model is a child of another model using STI
+      def richfield_is_sti_child?
+        @_richfield_fields_defined == :child
+      end
+
+
+      # returns the declared field definitions
       def richfield_fields
         self._richfield_fields if respond_to? :_richfield_fields
       end
 
+      # call this to declare your fields
       def fields options={}
         fields = richfield_fields_create
         fields.options.merge!(options)

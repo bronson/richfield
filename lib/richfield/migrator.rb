@@ -39,17 +39,22 @@ module Richfield
     end
 
     def model_tables
-      {}.tap do |result|
-        @models.each do |model|
-          # create an identical table definition where columns contains the desired columns, not the actual ones
-          raise "richfield's ActiveRecord extension wasn't loaded" unless model.respond_to? :richfield_fields
-          if model.richfield_fields
-            columns = add_belongs_to_columns(model, model.richfield_fields_create.columns)
-            table_definition = TableDefinition.new(model.table_name, model.richfield_fields.options, columns)
-            result.merge! model.table_name => table_definition
-          end
+      result = {}
+      @models.each do |model|
+        # create an identical table definition where columns contains the desired columns, not the actual ones
+        raise "richfield's ActiveRecord extension wasn't loaded" unless model.respond_to? :richfield_fields
+        next if model.richfield_is_sti_child?   # we only need to process the base STI class
+
+        if model.richfield_fields
+          columns = model.richfield_fields_create.columns.dup
+          add_belongs_to_columns(model, columns)
+          add_sti_columns(model, columns)
+          # puts "Guessed fields for #{model.name}: #{columns.map(&:name) - model.richfield_fields_create.columns.map(&:name)}"
+          table_definition = TableDefinition.new(model.table_name, model.richfield_fields.options, columns)
+          result.merge! model.table_name => table_definition
         end
       end
+      result
     end
 
     def define_join_table association
@@ -69,21 +74,39 @@ module Richfield
       end
     end
 
+    def hash_of_names objects
+      # returns a hash of the names with a value of true to check presence.
+      # why can't I make this simple concept readable???
+      # objects.inject({}) { |h,col| h.merge! col.name => true }
+      Hash[*objects.map { |col| [col.name.to_s, true] }.flatten]
+    end
+
     def add_belongs_to_columns model, columns
       # merges any columns that we need to guess in with existing columns
       # don't let our guesses override the declarations in the fields block
-      [].tap do |result|
-        result.concat columns
-        names = result.inject({}) { |h,col| h.merge! col.name => true }
-        model.reflect_on_all_associations(:belongs_to).each do |association|
-          if names[association.foreign_key.to_s].nil?
-            result << Richfield::Compatibility.create_column_definition(model.connection, association.foreign_key, :integer)
-          end
-          if association.options[:polymorphic] && names[association.foreign_type].nil?
-            result << Richfield::Compatibility.create_column_definition(model.connection, association.foreign_type, :string)
-          end
+      names = hash_of_names(columns)
+      model.reflect_on_all_associations(:belongs_to).each do |association|
+        if names[association.foreign_key.to_s].nil?
+          columns << Richfield::Compatibility.create_column_definition(model.connection, association.foreign_key, :integer)
+        end
+        if association.options[:polymorphic] && names[association.foreign_type].nil?
+          columns << Richfield::Compatibility.create_column_definition(model.connection, association.foreign_type, :string)
         end
       end
+      columns
+    end
+
+    def add_sti_columns model, columns
+      if model.richfield_fields.using_sti? && model.superclass == ActiveRecord::Base
+        names = hash_of_names(columns)
+        if names[model.inheritance_column.to_s].nil?
+          puts "#{model.inheritance_column.to_s} : #{names}"
+          column = Richfield::Compatibility.create_column_definition(model.connection, model.inheritance_column, :string)
+          column.null = false
+          columns << column
+        end
+      end
+      columns
     end
 
     def create_change call, model, column
