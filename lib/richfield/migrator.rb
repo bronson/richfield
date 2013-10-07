@@ -1,6 +1,5 @@
 require 'richfield/configuration'
 require 'richfield/schema_formatter'
-require 'active_support/core_ext/hash/diff'
 
 module Richfield
   # Just enough model to keep track of a table definiton.  It's probably
@@ -94,6 +93,13 @@ module Richfield
       change
     end
 
+    # used to be in activesupport, now deprecated
+    def hash_diff me, other
+      me.dup.
+        delete_if { |k, v| other[k] == v }.
+        merge!(other.dup.delete_if { |k, v| me.has_key?(k) })
+    end
+
     def detect_changes model, table
       unless model.table_name == table.table_name
         raise "model name is #{model.table_name} and table name is #{table.table_name}??"
@@ -124,7 +130,7 @@ module Richfield
         to_change.each do |column|
           model_args = Richfield::ColumnOptions.extract_options(model_columns[column], true)
           table_args = Richfield::ColumnOptions.extract_options(table_columns[column], true)
-          if !model_args.diff(table_args).empty?
+          if !hash_diff(model_args, table_args).empty?
             result << create_change(:change_column, model, model_columns[column])
           end
         end
