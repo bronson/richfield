@@ -11,6 +11,7 @@ Massive inspiration from Tom Locke and HoboFields.
 Before this gem is ready for prime time:
 
 - get rid of Richfield::TableDefinition
+- implement down migrations
 - don't ignore existing migration syntax.  if I specify some options on the command line, they should be added to the generated migration.
 - implement pending specs
 - be smart about renaming fields and tables instead of adding/dropping
