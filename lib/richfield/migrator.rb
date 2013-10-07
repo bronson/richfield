@@ -72,11 +72,12 @@ module Richfield
 
     def add_belongs_to_columns model, columns
       # merges any columns that we need to guess in with existing columns
+      # don't let our guesses override the declarations in the fields block
       [].tap do |result|
         result.concat columns
         names = result.inject({}) { |h,col| h.merge! col.name => true }
         model.reflect_on_all_associations(:belongs_to).each do |association|
-          if names[association.foreign_key].nil?
+          if names[association.foreign_key.to_s].nil?
             result << Richfield::Compatibility.create_column_definition(model.connection, association.foreign_key, :integer)
           end
           if association.options[:polymorphic] && names[association.foreign_type].nil?

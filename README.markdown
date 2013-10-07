@@ -15,7 +15,7 @@ it however you'd like in your fields statement.  Richfield won't override you.
     class Permission < ActiveRecord::Base
       belongs_to :user
       fields do |t|
-        t.integer :user_id, default: 12
+        t.integer :user_id, default: 1
       end
     end
 
