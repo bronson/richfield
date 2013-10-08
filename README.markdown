@@ -15,9 +15,12 @@ Before this gem is ready for prime time:
 - don't ignore existing migration syntax.  if I specify some options on the command line, they should be added to the generated migration.
 - implement pending specs
 - be smart about renaming fields and tables instead of adding/dropping
-- try to fix todos
+- if the model specifies self.primary_key = :blah, why do I also have to pass it in the fields block?
+- try to fix tods
 - document document document!
 - add code to guess the name of the migration?
+- add ability to set config from command line (pending_migration check)
+- if reversable, coalesce up/down block into change block?
 - release 1.0
 - submit patch so Richfield::SchemaFormatter can take over from the more limited AR::SchemaDumper
 

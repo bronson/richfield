@@ -26,7 +26,7 @@ describe Richfield::Migrator do
 
     test_migrator(
       { change: [
-        { call: :add_column, table: "now_with_keys", name: "id", type: :primary_key }
+        { call: :add_column, table: "now_with_keys", name: "id", type: :primary_key, options: {null: false}}
       ]}
     )
   end
