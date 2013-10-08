@@ -29,7 +29,7 @@ module Richfield
           else
             class << self
               def _richfield_fields
-                @_richfield_fields ||= Richfield::Fields.new(connection, table_name)
+                @_richfield_fields ||= Richfield::Fields.new(self)
               end
             end
             @_richfield_fields_defined = :base
@@ -51,10 +51,8 @@ module Richfield
       end
 
       # call this to declare your fields
-      def fields options={}
-        fields = richfield_fields_create
-        fields.options.merge!(options)
-        yield fields.definition if block_given?
+      def fields options={}, &block
+        richfield_fields_create.merge! options, block
       end
     end
   end
