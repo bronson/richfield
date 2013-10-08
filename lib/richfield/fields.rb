@@ -11,8 +11,6 @@ require 'richfield/compatibility'
 
 module Richfield
   class Fields
-    attr_reader :options
-
     def initialize model
       @definition = nil   # the TableDefinition
       @model = model
@@ -21,13 +19,18 @@ module Richfield
       @deferred = []      # options and blocks awaiting a db connection
     end
 
-    # invoked when a fields block gets used in a subclass
+    # called automatically when a fields block gets used in a subclass
     def using_sti!
       @sti = true
     end
 
     def using_sti?
       @sti
+    end
+
+    def options
+      instantiate!
+      @options
     end
 
     def definition
@@ -39,9 +42,12 @@ module Richfield
       definition.columns
     end
 
-    def _merge opts, block
-      self.options.merge!(opts)
-      block && block.call(@definition)
+
+    def instantiate!
+      return if @definition
+      @definition = Richfield::Compatibility.create_table_definition(@model.connection, @model.table_name)
+      @deferred.each { |args| _merge(*args) }
+      @deferred = nil
     end
 
     def merge! opts, block
@@ -53,11 +59,10 @@ module Richfield
       end
     end
 
-    def instantiate!
-      return if @definition
-      @definition = Richfield::Compatibility.create_table_definition(@model.connection, @model.table_name)
-      @deferred.each { |args| _merge(*args) }
-      @deferred = nil
+    def _merge opts, block
+      # instantiate! must already be called
+      self.options.merge!(opts)
+      block && block.call(@definition)
     end
   end
 end
