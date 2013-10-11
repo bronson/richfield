@@ -1,5 +1,6 @@
 Description:
-    Add a fields clause to your models, then the migration generator.
+    Add a fields block to your models, then the migration generator
+    will write your migrations for you.
     See http://github.com/bronson/richfield for more.
 
 Example:
