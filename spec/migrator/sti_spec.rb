@@ -24,16 +24,16 @@ describe Richfield::Migrator do
       end
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "assets", columns: [
           { name: "price", type: :integer },
           { name: "ceiling_height", type: :integer },
           { name: "easements", type: :integer },
           { name: "type", type: :string, null: false } # automatically added
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -51,15 +51,15 @@ describe Richfield::Migrator do
       end
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "enemies", columns: [
           { name: "flaws", type: :integer },
           { name: "psychoses", type: :integer },
           { name: "zoink", type: :string, null: false },
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -85,7 +85,7 @@ describe Richfield::Migrator do
       t.integer :psychoses
     end
 
-    test_migrator( {} )  # table matches models, nothing to do
+    expect(generated_migration).to eq({})  # table matches models, nothing to do
   end
 
   # doh, the proper way to implement this is to add the

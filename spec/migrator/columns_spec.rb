@@ -18,7 +18,7 @@ describe Richfield::Migrator do
     table :empties do
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :add_column, table: 'empties', name: 'name', type: :string, options: { default: "nope" } }
       ]})
@@ -45,7 +45,7 @@ describe Richfield::Migrator do
       t.integer :handler_id
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :remove_column, table: "dogs",     name: "handler_id" },
         { call: :add_column,    table: "handlers", name: "dog_id", type: :integer }
@@ -63,7 +63,7 @@ describe Richfield::Migrator do
       t.primary_key :id
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :add_column, table: "sectors", name: "parent_id", type: :integer }
       ]})
@@ -82,7 +82,7 @@ describe Richfield::Migrator do
       t.text :content
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :add_column, table: "comments", name: "commentable_id", type: :integer},
         { call: :add_column, table: "comments", name: "commentable_type", type: :string }
@@ -104,7 +104,7 @@ describe Richfield::Migrator do
       t.string :commentable_type
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :remove_column, table: "comments", name: "commentable_id" },
         { call: :remove_column, table: "comments", name: "commentable_type" }
@@ -135,7 +135,7 @@ describe Richfield::Migrator do
       t.primary_key :id
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       create: [
         { table_name: "roles_users", options: {id: false}, columns: [
           { name: "role_id", type: :integer },
@@ -170,7 +170,7 @@ describe Richfield::Migrator do
       t.integer :user_id
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       drop: [ "roles_users" ]
     })
   end
@@ -187,7 +187,7 @@ describe Richfield::Migrator do
       t.integer :year
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :change_column, table: "changing_tables", name: "year", type: :string }
       ]})
@@ -205,7 +205,7 @@ describe Richfield::Migrator do
       t.string :name
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :change_column, table: "non_nulls", name: "name", type: :string, options: { null: false }}
       ]})
@@ -223,7 +223,7 @@ describe Richfield::Migrator do
       t.string :name, :null => false
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :change_column, table: "nullables", name: "name", type: :string }
       ]})
@@ -242,7 +242,7 @@ describe Richfield::Migrator do
       t.string :name
     end
 
-    test_migrator({})
+    expect(generated_migration).to eq({})
   end
 
 
@@ -258,11 +258,10 @@ describe Richfield::Migrator do
       t.string :name, null: true
     end
 
-    test_migrator({})
+    expect(generated_migration).to eq({})
   end
 
   it "renames columns where possible"
-  it "renames tables where possible"
 
   it "automatically adds an index for references"
   it "automatically adds an index for foreign key"

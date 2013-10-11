@@ -9,7 +9,7 @@ require File.expand_path("../../spec_helper", __FILE__)
 describe Richfield::Migrator do
   it "ignores models that don't declare fields" do
     model 'Ignored'
-    test_migrator({})
+    expect(generated_migration).to eq({})
   end
 
 
@@ -17,7 +17,7 @@ describe Richfield::Migrator do
     pending "mocking tables and models, then testing the generator itself"
     Richfield.config.ignore_tables << 'ignore_me'
     table :ignore_me
-    test_migrator({})
+    expect(generated_migration).to eq({})
   end
 
 
@@ -26,9 +26,11 @@ describe Richfield::Migrator do
       fields :id => false
     end
 
-    test_migrator(
-      { create: [{table_name: "truly_empties", options: {id: false}, columns: []} ]}
-    )
+    expect(generated_migration).to eq({
+      create: [
+        { table_name: "truly_empties", options: {id: false}, columns: []}
+      ]
+    })
   end
 
 
@@ -48,8 +50,8 @@ describe Richfield::Migrator do
       end
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "first_simples", columns: [
           { name: "first_name", type: :string },
           { name: "last_name", type: :string, limit: 40 },
@@ -63,8 +65,8 @@ describe Richfield::Migrator do
           { name: "created_at", type: :datetime },
           { name: "updated_at", type: :datetime }
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -76,15 +78,15 @@ describe Richfield::Migrator do
       fields { |t| t.integer :age }
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "multi_modals", options: {id: false}, columns: [
           { name: "first_name", type: :string },
           { name: "last_name", type: :string, limit: 40 },
           { name: "age", type: :integer }
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -101,16 +103,16 @@ describe Richfield::Migrator do
       end
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "dogs", columns: [
           { name: "handler_id", type: :integer }
         ]},
 
         { table_name: "handlers", columns: [
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -125,14 +127,14 @@ describe Richfield::Migrator do
       belongs_to :handler
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "dogs", columns: [
           { name: "handler_id", type: :integer }
         ]},
         { table_name: "handlers", columns: []}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -151,8 +153,8 @@ describe Richfield::Migrator do
       has_many :comments, as: :commentable
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "articles", columns: [
           { name: "name", type: :string },
         ]},
@@ -162,8 +164,8 @@ describe Richfield::Migrator do
           { name: "commentable_id", type: :integer },
           { name: "commentable_type", type: :string }
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -182,8 +184,8 @@ describe Richfield::Migrator do
       has_and_belongs_to_many :users, foreign_key: 'role_id', association_foreign_key: 'user_id', join_table: 'roles_users'
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "roles", columns: []},
 
         { table_name: "roles_users", options: {id: false}, columns: [
@@ -194,8 +196,8 @@ describe Richfield::Migrator do
         { table_name: "users", columns: [
           { name: "name", type: :string }
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -224,8 +226,8 @@ describe Richfield::Migrator do
       belongs_to :patient
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "appointments", columns: [
           { name: "appointment_date", type: :datetime },
           { name: "physician_id", type: :integer },
@@ -239,8 +241,8 @@ describe Richfield::Migrator do
         { table_name: "physicians", columns: [
           { name: "name", type: :string }
         ]}
-      ]}
-    )
+      ]
+    })
   end
 
 
@@ -256,10 +258,11 @@ describe Richfield::Migrator do
       t.string :name
     end
 
-    test_migrator(
-      { drop: [ 'empties', 'ravens' ]}
-    )
+    expect(generated_migration).to eq({
+      drop: [ 'empties', 'ravens' ]
+    })
   end
 
   it "drops a habtm join table"
+  it "renames tables where possible"
 end

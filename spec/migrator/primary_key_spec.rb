@@ -6,10 +6,11 @@ describe Richfield::Migrator do
       fields
     end
 
-    test_migrator(
-      { create: [
+    expect(generated_migration).to eq({
+      create: [
         { table_name: "empties", columns: [] }
-      ]} )
+      ]
+    })
   end
 
 
@@ -24,11 +25,11 @@ describe Richfield::Migrator do
       t.string :name   # no id column
     end
 
-    test_migrator(
-      { change: [
-        { call: :add_column, table: "now_with_keys", name: "id", type: :primary_key, options: {null: false}}
-      ]}
-    )
+    expect(generated_migration).to eq({
+      change: [
+        { call: :add_column, table: "now_with_keys", name: "id", type: :primary_key, options: {null: false} }
+      ]
+    })
   end
 
 
@@ -44,10 +45,11 @@ describe Richfield::Migrator do
       t.string :name
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :remove_column, table: "now_no_keys", name: "id" }
-      ]})
+      ]
+    })
   end
 
 
@@ -63,10 +65,11 @@ describe Richfield::Migrator do
       t.string :zappo
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       change: [
         { call: :remove_column, table: "now_no_keys", name: "id" }
-      ]})
+      ]
+    })
   end
 
 
@@ -82,7 +85,7 @@ describe Richfield::Migrator do
       t.integer :t2
     end
 
-    test_migrator({})
+    expect(generated_migration).to eq({})
   end
 
 
@@ -97,6 +100,6 @@ describe Richfield::Migrator do
       t.primary_key :t2
     end
 
-    test_migrator({})
+    expect(generated_migration).to eq({})
   end
 end

@@ -66,7 +66,6 @@ def table name, options={}
 end
 
 
-def test_migrator result={}
-  output = Richfield::Migrator.new(@models||[], @tables||[]).generate
-  expect(output.to_hash).to eq result
+def generated_migration result={}
+  Richfield::Migrator.new(@models||[], @tables||[]).generate.to_hash
 end

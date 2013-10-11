@@ -42,7 +42,7 @@ describe Richfield::Migrator do
         t.string :name
       end
 
-      test_migrator({
+      expect(generated_migration).to eq({
         change: [
           { call: :change_column, table: "non_nulls", name: "name", type: :string, options: { null: false }}
         ]} )
@@ -60,7 +60,7 @@ describe Richfield::Migrator do
         t.string :name, :null => false
       end
 
-      test_migrator({
+      expect(generated_migration).to eq({
         change: [
           { call: :change_column, table: "nullables", name: "name", type: :string }
         ]} )
@@ -78,7 +78,7 @@ describe Richfield::Migrator do
         t.string :name
       end
 
-      test_migrator({})
+      expect(generated_migration).to eq({})
     end
 
 
@@ -93,7 +93,7 @@ describe Richfield::Migrator do
         t.string :name, null: true
       end
 
-      test_migrator({})
+      expect(generated_migration).to eq({})
     end
   end
 

@@ -17,7 +17,7 @@ describe Richfield::Migrator do
       end
     end
 
-    test_migrator({
+    expect(generated_migration).to eq({
       create: [{
         table_name: "artists",
         columns: [
@@ -47,7 +47,7 @@ describe Richfield::Migrator do
 
     table "contacts"
 
-    test_migrator({
+    expect(generated_migration).to eq({
       :create => [{
         :table_name=>"assets",
         :columns=>[
