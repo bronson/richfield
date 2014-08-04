@@ -4,7 +4,9 @@ module Richfield
   module Compatibility
     # AR4 changed TableDefinition's arguments: https://github.com/rails/rails/commit/14d7dc0811fc946ffb63ceed7e0389ed14b50800
     def self.create_table_definition connection, name, options={}
-      if ActiveRecord::ConnectionAdapters::TableDefinition.instance_method(:initialize).arity < 4
+      # Is there a good way of testing how many arguments to pass?  This is too brittle:
+      #    ActiveRecord::ConnectionAdapters::TableDefinition.instance_method(:initialize).arity < 4
+      if ActiveRecord.version.to_s.to_f < 4.0
         ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) # AR3
       else
         ActiveRecord::ConnectionAdapters::TableDefinition.new(connection.native_database_types, name, false, options) # AR4
