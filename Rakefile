@@ -10,6 +10,7 @@ require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new :spec4
 
 task :spec3 do
+  system('BUNDLE_GEMFILE=Gemfile-AR3 bundle install')
   system('BUNDLE_GEMFILE=Gemfile-AR3 bundle exec rspec')
 end
 

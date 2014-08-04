@@ -1,7 +1,8 @@
 rvm:
   - 1.9.3
   - 2.0.0
-  # If a single person wants jruby, rubinious, or ree, I'll add it. Just file an issue.
+  - 2.1.1
+  # If anybody wants jruby, rubinious, or ree, I'm happy to add it. Just file an issue.
 script: 'bundle exec rspec'
 gemfile:
   - Gemfile
