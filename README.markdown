@@ -6,6 +6,11 @@ Massive inspiration from Tom Locke and HoboFields.
 [![Build Status](https://api.travis-ci.org/bronson/richfield.png?branch=master)](http://travis-ci.org/bronson/richfield)
 
 
+## Compatibility
+
+Rails 3 and Rails 4.  Ruby 1.9.3 and up.
+
+
 ## TODO
 
 Before this gem is ready for prime time:
