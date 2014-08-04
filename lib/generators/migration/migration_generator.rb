@@ -73,16 +73,20 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
   attr_reader :migration
 
   def migrations_pending?
-    pending_migrations = ActiveRecord::Migrator.new(:up, 'db/migrate').pending_migrations
-
-    if pending_migrations.any?
-      say "You have #{pending_migrations.size} pending migration#{'s' if pending_migrations.size > 1}:"
-      pending_migrations.each do |pending_migration|
-        say '  %4d %s' % [pending_migration.version, pending_migration.name]
-      end
-      true
+    if ActiveRecord::Migration.respond_to? :check_pending!
+      # Rails 4+
+      ActiveRecord::Migration.check_pending!
     else
-      false
+      # Rails 3
+      pending_migrations = ActiveRecord::Migrator.new(:up, 'db/migrate').pending_migrations
+      if pending_migrations.any?
+        say "You have #{pending_migrations.size} pending migration#{'s' if pending_migrations.size > 1}:"
+        pending_migrations.each do |pending_migration|
+          say '  %4d %s' % [pending_migration.version, pending_migration.name]
+        end
+        return true
+      end
     end
+    false
   end
 end
