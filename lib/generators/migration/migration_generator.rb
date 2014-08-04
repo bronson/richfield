@@ -45,7 +45,7 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
   def create_migration_file *args
     # make sure the ActiveRecord migration interface hasn't changed TODO: remove this when we have excellent test coverage
     raise Thor::Error, "API Mismatch?" if ActiveRecord::Generators::MigrationGenerator.all_tasks.except('singular_name').keys != ['create_migration_file']
-    return if Richfield.config.check_for_pending_migrations && migrations_pending?
+    return if Richfield.config.check_for_pending_migrations && Richfield.compatibility.migrations_pending?
 
     Rails.application.eager_load!
     models = ActiveRecord::Base.descendants.select { |m| m.respond_to? :fields }
@@ -69,24 +69,6 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
     end
   end
 
-  protected
+protected
   attr_reader :migration
-
-  def migrations_pending?
-    if ActiveRecord::Migration.respond_to? :check_pending!
-      # Rails 4+
-      ActiveRecord::Migration.check_pending!
-    else
-      # Rails 3
-      pending_migrations = ActiveRecord::Migrator.new(:up, 'db/migrate').pending_migrations
-      if pending_migrations.any?
-        say "You have #{pending_migrations.size} pending migration#{'s' if pending_migrations.size > 1}:"
-        pending_migrations.each do |pending_migration|
-          say '  %4d %s' % [pending_migration.version, pending_migration.name]
-        end
-        return true
-      end
-    end
-    false
-  end
 end
