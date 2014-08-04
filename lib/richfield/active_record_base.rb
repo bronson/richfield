@@ -17,7 +17,7 @@ module Richfield
         # Best I could come up with: parent uses instance var and children call through to parent.
         # I hate metaprogramming! A growler of Sante Adarius to anyone who can implement a better way.
 
-        unless @_richfield_fields_defined
+        unless defined?(@_richfield_fields_defined)
           if superclass.respond_to? :_richfield_fields
             class << self
               def _richfield_fields
