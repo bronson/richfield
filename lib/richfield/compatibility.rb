@@ -6,19 +6,19 @@ module Richfield
     def self.create_table_definition connection, name, options={}
       # Is there a good way of testing how many arguments to pass?  This is too brittle:
       #    ActiveRecord::ConnectionAdapters::TableDefinition.instance_method(:initialize).arity < 4
-      if ActiveRecord.version.to_s.to_f < 4.0
-        ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) # AR3
-      else
+      if ActiveRecord.respond_to?(:version) && ActiveRecord.version.to_s.to_f >= 4.0
         ActiveRecord::ConnectionAdapters::TableDefinition.new(connection.native_database_types, name, false, options) # AR4
+      else
+        ActiveRecord::ConnectionAdapters::TableDefinition.new(connection) # AR3
       end
     end
 
     # AR4 changed ColumnDefinition's arguments: https://github.com/rails/rails/commit/cd07f194dc2d8e4278ea9a7d4ccebfe74513b0ac
     def self.create_column_definition connection, name, type
-      if ActiveRecord::ConnectionAdapters::ColumnDefinition.members.include?(:base)
-        ActiveRecord::ConnectionAdapters::ColumnDefinition.new(connection, name, type) # AR3
-      else
+      unless ActiveRecord::ConnectionAdapters::ColumnDefinition.members.include?(:base)
         ActiveRecord::ConnectionAdapters::ColumnDefinition.new(name, type) #AR4
+      else
+        ActiveRecord::ConnectionAdapters::ColumnDefinition.new(connection, name, type) # AR3
       end
     end
 
