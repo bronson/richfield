@@ -30,24 +30,32 @@ module Richfield
         connection.schema_creation.accept(column)   # AR4
       end
     end
-  end
 
-  # AR4 changed the Migrator but added a call to check migration
-  def migrations_pending?
-    if ActiveRecord::Migration.respond_to? :check_pending!
-      # Rails 4+
-      ActiveRecord::Migration.check_pending!
-    else
-      # Rails 3
-      pending_migrations = ActiveRecord::Migrator.new(:up, 'db/migrate').pending_migrations
-      if pending_migrations.any?
-        say "You have #{pending_migrations.size} pending migration#{'s' if pending_migrations.size > 1}:"
-        pending_migrations.each do |pending_migration|
-          say '  %4d %s' % [pending_migration.version, pending_migration.name]
-        end
-        return true
+    def self.join_table association
+      if association.respond_to? :join_table
+        association.join_table
+      else
+        association.options[:join_table]
       end
     end
-    false
+
+    # AR4 changed the Migrator but added a call to check migration
+    def self.migrations_pending?
+      if ActiveRecord::Migration.respond_to? :check_pending!
+        # Rails 4+
+        ActiveRecord::Migration.check_pending!
+      else
+        # Rails 3
+        pending_migrations = ActiveRecord::Migrator.new(:up, 'db/migrate').pending_migrations
+        if pending_migrations.any?
+          say "You have #{pending_migrations.size} pending migration#{'s' if pending_migrations.size > 1}:"
+          pending_migrations.each do |pending_migration|
+            say '  %4d %s' % [pending_migration.version, pending_migration.name]
+          end
+          return true
+        end
+      end
+      false
+    end
   end
 end
