@@ -13,8 +13,15 @@ Rails 3 and Rails 4.  Ruby 1.9.3 and up.
 
 ## TODO
 
-Before this gem is ready for prime time:
 
+
+
+
+
+- Make Richfield understand reversible migrations:
+  https://www.reinteractive.net/posts/178-reversible-migrations-with-active-record
+  At the very least, pass the rest of the info to remove_column.
+  NOTE: this must mean dropping Rails 3 support.
 - get rid of Richfield::TableDefinition
 - implement down migrations
 - don't ignore existing migration syntax.  if I specify some options on the command line, they should be added to the generated migration.
@@ -28,6 +35,12 @@ Before this gem is ready for prime time:
 - if reversable, coalesce up/down block into change block?
 - release 1.0
 - submit patch so Richfield::SchemaFormatter can take over from the more limited AR::SchemaDumper
+- Pass :index and :foreign_key into migration so schema_plus gem will work.
+  Also, is it possible to ensure indices match, and generate a migration if not?
+- Automatically add indexes (crib from https://github.com/plentz/lol_dba ?)
+  Or can we just use lol_dba?
+- add_column and remove_column should take a block that gets run
+  after it is added and before it is removed.
 
 
 ## Droppings
