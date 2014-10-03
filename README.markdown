@@ -13,11 +13,8 @@ Rails 3 and Rails 4.  Ruby 1.9.3 and up.
 
 ## TODO
 
-
-
-
-
-
+- Omitting a fields block (where the model exists but the fields block doesn't)
+  should mean that model is ignored, NOT dropped!
 - Make Richfield understand reversible migrations:
   https://www.reinteractive.net/posts/178-reversible-migrations-with-active-record
   At the very least, pass the rest of the info to remove_column.
