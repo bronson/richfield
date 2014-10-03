@@ -41,6 +41,7 @@ require 'richfield/migrator'
 class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
   # this tells where to find this generator's template files
   source_root File.expand_path('../templates', __FILE__)
+  class_option :reverse, :type => :boolean, :default => false, :description => "Generate the inverse migration"
 
   def create_migration_file *args
     # make sure the ActiveRecord migration interface hasn't changed TODO: remove this when we have excellent test coverage
@@ -58,7 +59,9 @@ class MigrationGenerator < ActiveRecord::Generators::MigrationGenerator
       Richfield::TableDefinition.new(table, nil, ActiveRecord::Base.connection.columns(table))
     }
 
-    @migration = Richfield::Migrator.new(models,tables).generate
+    migrator_args = [models, tables]
+    migrator_args.reverse! if options.reverse?
+    @migration = Richfield::Migrator.new(*migrator_args).generate
     if file_name == 'show'
       # special case to show the migration instead of saving it
       # TODO 'show' sucks, any way to pass a magic value like '-'?
